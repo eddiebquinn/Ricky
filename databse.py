@@ -4,9 +4,19 @@ from datetime import datetime
 
 class Database:
 
-    def __init__(self, dbUserName, dbUserPassword, dbIP, dbName):
+    def __init__(self, config:dict):
+        """_summary_
 
-        self.pymsql_string = f"mysql+pymysql://{dbUserName}:{dbUserPassword}@{dbIP}/{dbName}"
+        Args:
+            config (dict): Part of the settings.JSON file, should contain
+                -Mysql username
+                -Mysql password
+                -Host IP
+                -Host port
+                -Scheema name
+        """
+
+        self.pymsql_string = f"mysql+pymysql://{config['username']}:{config['password']}@{config['host']}/{config['database']}"
         self.engine = create_engine(self.pymsql_string, echo=True)
         self.conn = self.engine.connect()
         self.meta = MetaData()
