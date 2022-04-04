@@ -4,6 +4,7 @@ from utils import extract_json
 
 def init():
     """ Launches the bot """
+    global database 
     database = Database(config=extract_json()["sql_connection_settings"])
     launch_discord_bot()
 
