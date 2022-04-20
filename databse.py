@@ -64,6 +64,15 @@ class Database:
         
         self.meta.create_all(self.engine)
 
+    #Relapse Tab
+    async def insert_relapse(self, user_id:int, relapse_utc=datetime.utcnow(), previous_streak_invalid=False):
+        query = self.relapseTab.insert().values(
+            discord_user_id=user_id,
+            relapse_utc=relapse_utc,
+            previous_streak_invalid=previous_streak_invalid
+        )
+        self.conn.execute(query)
+
     #Guild Tab
     
     async def select_guild_data(self, guild_id:int):
