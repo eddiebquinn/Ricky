@@ -16,14 +16,27 @@ class streak(commmands.Cog):
         starting_date = datetime.utcnow() - timedelta(seconds=time)
 
         #Get user data on current streak
-        rows = await database.select_relapse_data(ctx.author.id)
+        previous_streak_data = await database.select_relapse_data(ctx.author.id)
 
         #If previous streak
-        if len(rows) > 0:
-            await self.db_streak_update(ctx, id=ctx.author.id)
-        #If no previous streak
+        previous= True if len(previous_streak_data) > 0 else False
+
+        #update database
+        await self.db_streak_update(ctx=ctx, previous=previous)
+
+        #find current streak length
+        previous_start_date = previous_streak_data[0][2]
+        current_streak_length = (starting_date - previous_start_date).total_seconds()
+
+        #update roles
+        await self.update_role(current_streak_length)
+
+        #post message
+        if previous:
+            streak_string = await self.get_streak_string(time)
+            await ctx.send(f"Your previous streak was {streak_string[0]} days, and {streak_string[1]} hours. \n Dont be dejected")
         else:
-            await self.db_streak_update(ctx, previous=False)
+            await ctx.send("This is your first sreak on record, good luck")
 
     async def db_streak_update(self, ctx, previous=True):
         #update last update
@@ -32,20 +45,14 @@ class streak(commmands.Cog):
         #if previous streak insert relapse data
         if previous:
             await database.insert_relapse(user_id=ctx.author.id, relapse_utc=starting_date)
-        
-        #update roles
-        await self.update_role()
-        #post message
-        if previous:
-            streak_string = await self.get_streak_string(time)
-            await ctx.send(f"Your previous streak was {streak_string[0]} days, and {streak_string[1]} hours. \n Dont be dejected")
-        else:
-            await ctx.send("This is your first sreak on record, good luck")
     
     async def get_streak_string(self, seconds):
         days = seconds // 24*3600
         hours = seconds // 3600
         return [days, hours]
     
-    async def update_role(self):
-        pass
+    async def calc_streak_length(self, previous_start_date, current_start_date):
+        return (current_start_date - previous_start_date).total_seconds()
+    
+   async def update_role() 
+        
