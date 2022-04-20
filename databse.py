@@ -82,7 +82,7 @@ class Database:
     #Relapse Tab
 
     async def select_relapse_data(self, user_id:int):
-        query = self.relapseTab.select().where(relapseTab.c.discord_user_id == user_id)
+        query = self.relapseTab.select().where(relapseTab.c.discord_user_id == user_id).order_by(self.relapseTab.c.relapse_utc)
         return self.conn.execute(query).fetchall
      
     #Userdata Tab
