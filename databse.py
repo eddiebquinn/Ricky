@@ -97,3 +97,9 @@ class Database:
         query = update(userTab).where(userdata.c.id == user_id).values(
             last_update = datetime.utcnow())
         self.conn.execute(query)
+
+    #Roleinfo Tab
+
+    async def select_guild_roles(self, guild_id:int):
+        query = self.roleConfigTab.select().where(self.relapseTab.c.guild_id == guild_id)
+        return self.conn.execute(query).fetchall
