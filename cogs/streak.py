@@ -10,6 +10,7 @@ class streak(commmands.Cog):
     
     @commands.command(name="relapse")
     @commands.check(utils.is_in_streak_channel)
+    @commands.cooldown(3, 300, commands.BucketType.user)
     async def relapse(self, ctx,  *, time: utils.TimeConverter=None):
         
         #Decode the arguments to get current starting date
@@ -27,7 +28,7 @@ class streak(commmands.Cog):
         #find current streak length
         previous_start_date = previous_streak_data[0][2]
         current_streak_length = (starting_date - previous_start_date).total_seconds()
-        streak_string = await self.get_streak_string(time)
+        streak_string = await self.get_streak_string(current_streak_length)
 
         #update roles
         await self.update_role(ctx, streak_string[0])
@@ -37,6 +38,21 @@ class streak(commmands.Cog):
             await ctx.send(f"Your previous streak was {streak_string[0]} days, and {streak_string[1]} hours. \n Dont be dejected")
         else:
             await ctx.send("This is your first sreak on record, good luck")
+
+    @commands.command(name="update")
+    @commands.cooldown(3, 900, commands.BucketType.user)
+    @commands.check(utils.is_in_streak_channel)
+    async def update(self, ctx):
+
+        #get streak str and post message
+        previous_streak_data = await database.select_relapse_data(ctx.author.id)
+        previous_start_date = previous_streak_data[0][2]
+        current_streak_length = previous_start_date.total_seconds()
+        streak_string = await self.get_streak_string(current_streak_length)
+        await ctx.send(f"Your streak is {streak_string[0]} days, and f{streak_string[1]} hours long")
+
+        #update roles
+        await self.update_role(ctx, streak_string[0])
 
     async def db_streak_update(self, ctx, previous=True):
         #update last update
