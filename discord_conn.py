@@ -1,9 +1,7 @@
 import discord
 from discord.ext import commands
-from utils import extract_json
+import utils
 import os
-
-
 
 intents = discord.Intents.all()
 intents.members = True
@@ -20,9 +18,8 @@ async def on_ready():
 async def cogs_load():
     for filename in os.listdir("./cogs"):
         if filename.endswith(".py"):
-            if filename[:-3] in cogs:
-                self.client.load_extension(f"cogs.{filename[:-3]}")
-                
+            client.load_extension(f"cogs.{filename[:-3]}")
+            
 def launch_discord_bot():
-    token = extract_json()["discord_api_settings"]["api_token"]
+    token = utils.extract_json()["discord_api_settings"]["api_token"]
     client.run(token)

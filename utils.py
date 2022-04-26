@@ -1,9 +1,7 @@
-from main import database
+import main
 from discord.ext import commands
 import json
 import time
-
-
 
 class TimeConverter(commands.Converter):
 
@@ -31,7 +29,7 @@ def extract_json():
     return json.load(file_)
 
 def is_in_streak_channel(guild_id:int, channel_id:int):
-    data = database.select_guild_data(guild_id)[0]
+    data = main.database.select_guild_data(guild_id)[0]
     if data[1] != 1:
         return True
     return data[2] == channel_id
