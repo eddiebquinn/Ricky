@@ -1,3 +1,4 @@
+import utils
 from sqlalchemy import create_engine, MetaData, Table, Column, ForeignKey, update
 from sqlalchemy.dialects.mysql import BIGINT, INTEGER, TEXT, DATETIME, TINYINT, VARCHAR
 from datetime import datetime
@@ -103,3 +104,7 @@ class Database:
     async def select_guild_roles(self, guild_id:int):
         query = self.roleConfigTab.select().where(self.relapseTab.c.guild_id == guild_id)
         return self.conn.execute(query).fetchall
+
+def database_init():
+    global database_conn
+    database_conn = Database(config=utils.extract_json()["sql_connection_settings"])

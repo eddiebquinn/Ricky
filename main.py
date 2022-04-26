@@ -1,11 +1,12 @@
 import utils
-from databse import Database
+import database
 import discord_conn
+
+global database_conn
 
 def init():
     """ Launches the bot """
-    global database 
-    database = Database(config=utils.extract_json()["sql_connection_settings"])
+    database.database_init()
     discord_conn.launch_discord_bot()
 
 if __name__ == "__main__":
