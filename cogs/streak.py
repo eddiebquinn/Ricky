@@ -1,11 +1,13 @@
 import utils
-from main import database
+import main
+import discord_conn
 from discord.ext import commands
 from datetime import datetime, timedelta
 
-class streak(commmands.Cog):
+class streak(commands.Cog):
 
-    def __init__(self):
+    def __init__(self, client):
+        print("initilised streak cog")
         self.client = client
     
     @commands.command(name="relapse")
@@ -17,7 +19,7 @@ class streak(commmands.Cog):
         starting_date = datetime.utcnow() - timedelta(seconds=time)
 
         #Get user data on current streak
-        previous_streak_data = await database.select_relapse_data(ctx.author.id)
+        previous_streak_data = await main.database.select_relapse_data(ctx.author.id)
 
         #If previous streak
         previous = True if len(previous_streak_data) > 0  else False
@@ -45,7 +47,7 @@ class streak(commmands.Cog):
     async def update(self, ctx):
 
         #get streak str and post message
-        previous_streak_data = await database.select_relapse_data(ctx.author.id)
+        previous_streak_data = await main.database.select_relapse_data(ctx.author.id)
         previous_start_date = previous_streak_data[0][2]
         current_streak_length = previous_start_date.total_seconds()
         streak_string = await self.get_streak_string(current_streak_length)
@@ -56,11 +58,11 @@ class streak(commmands.Cog):
 
     async def db_streak_update(self, ctx, previous=True):
         #update last update
-        await database.update_user_data(user_id=ctx.author.id)
+        await main.database.update_user_data(user_id=ctx.author.id)
 
         #if previous streak insert relapse data
         if previous:
-            await database.insert_relapse(user_id=ctx.author.id, relapse_utc=starting_date)
+            await main.database.insert_relapse(user_id=ctx.author.id, relapse_utc=starting_date)
     
     async def get_streak_string(self, seconds):
         days = seconds // 24*3600
@@ -85,7 +87,7 @@ class streak(commmands.Cog):
         owned_roles = {}
         for server in used_servers:
 
-            guild_roles = await database.select_guild_roles(server.id)
+            guild_roles = await main.database.select_guild_roles(server.id)
             roles = []
             for role in guild_roles:
                 roles.append(role[3])
@@ -98,7 +100,7 @@ class streak(commmands.Cog):
         
         deserved_roles = {}
         for server in used_servers:
-            guild_roles = await database.select_guild_roles(server.id)
+            guild_roles = await main.database.select_guild_roles(server.id)
             deserved_role = await self.get_deserved_streak_role(days, guild_roles)
             deserved_roles[server] = deserved_role 
 
@@ -137,3 +139,6 @@ class streak(commmands.Cog):
         min_val = min(role)
         min_val_index = role.index(min_val)
         return role[min_val_index]
+
+def setup(client):
+    discord_conn.client.add_cog(streak(client))
