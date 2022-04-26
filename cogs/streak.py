@@ -1,5 +1,5 @@
 import utils
-import main
+import database
 import discord_conn
 from discord.ext import commands
 from datetime import datetime, timedelta
@@ -11,15 +11,20 @@ class streak(commands.Cog):
         self.client = client
     
     @commands.command(name="relapse")
-    @commands.check(utils.is_in_streak_channel)
     @commands.cooldown(3, 300, commands.BucketType.user)
     async def relapse(self, ctx,  *, time: utils.TimeConverter=None):
         
+        #Make sure its in the streak channel (this isnt the right way to do it, ill figure out the right way at a later date)
+        data = await database.database_conn.select_guild_data(ctx.guild.id)
+        if data[0][1]:
+            if data[0][2] != ctx.channel.id:
+                return
+
         #Decode the arguments to get current starting date
         starting_date = datetime.utcnow() - timedelta(seconds=time)
 
         #Get user data on current streak
-        previous_streak_data = await main.database.select_relapse_data(ctx.author.id)
+        previous_streak_data = await database.database_conn.select_relapse_data(ctx.author.id)
 
         #If previous streak
         previous = True if len(previous_streak_data) > 0  else False
@@ -43,11 +48,10 @@ class streak(commands.Cog):
 
     @commands.command(name="update")
     @commands.cooldown(3, 900, commands.BucketType.user)
-    @commands.check(utils.is_in_streak_channel)
     async def update(self, ctx):
 
         #get streak str and post message
-        previous_streak_data = await main.database.select_relapse_data(ctx.author.id)
+        previous_streak_data = await database.database_conn.select_relapse_data(ctx.author.id)
         previous_start_date = previous_streak_data[0][2]
         current_streak_length = previous_start_date.total_seconds()
         streak_string = await self.get_streak_string(current_streak_length)
@@ -58,11 +62,11 @@ class streak(commands.Cog):
 
     async def db_streak_update(self, ctx, previous=True):
         #update last update
-        await main.database.update_user_data(user_id=ctx.author.id)
+        await database.database_conn.update_user_data(user_id=ctx.author.id)
 
         #if previous streak insert relapse data
         if previous:
-            await main.database.insert_relapse(user_id=ctx.author.id, relapse_utc=starting_date)
+            await database.database_conn.insert_relapse(user_id=ctx.author.id, relapse_utc=starting_date)
     
     async def get_streak_string(self, seconds):
         days = seconds // 24*3600
@@ -87,7 +91,7 @@ class streak(commands.Cog):
         owned_roles = {}
         for server in used_servers:
 
-            guild_roles = await main.database.select_guild_roles(server.id)
+            guild_roles = await database.database_conn.select_guild_roles(server.id)
             roles = []
             for role in guild_roles:
                 roles.append(role[3])
@@ -96,11 +100,11 @@ class streak(commands.Cog):
             owwned_role = await self.get_owned_streak_roles(member, roles)
             owned_roles[server] = owwned_role
         
-        ## loop through databse to find the correct role for the user, for servers he is is in --> dict where key == guild value == role called reserved_role
+        ## loop through database to find the correct role for the user, for servers he is is in --> dict where key == guild value == role called reserved_role
         
         deserved_roles = {}
         for server in used_servers:
-            guild_roles = await main.database.select_guild_roles(server.id)
+            guild_roles = await database.database_conn.select_guild_roles(server.id)
             deserved_role = await self.get_deserved_streak_role(days, guild_roles)
             deserved_roles[server] = deserved_role 
 
