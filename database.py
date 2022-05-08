@@ -1,5 +1,5 @@
 import utils
-from sqlalchemy import create_engine, MetaData, Table, Column, ForeignKey, update
+from sqlalchemy import create_engine, MetaData, Table, Column, ForeignKey, update, desc
 from sqlalchemy.dialects.mysql import BIGINT, INTEGER, TEXT, DATETIME, TINYINT, VARCHAR
 from datetime import datetime
 
@@ -83,7 +83,7 @@ class Database:
     #Relapse Tab
 
     async def select_relapse_data(self, user_id:int):
-        query = self.relapseTab.select().where(self.relapseTab.c.discord_user_id == user_id).order_by(self.relapseTab.c.relapse_utc)
+        query = self.relapseTab.select().where(self.relapseTab.c.discord_user_id == user_id).order_by(desc(self.relapseTab.c.relapse_utc))
         return self.conn.execute(query).fetchall()
 
     #Userdata Tab

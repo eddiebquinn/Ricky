@@ -31,7 +31,8 @@ class streak(commands.Cog):
         if previous:
             relapse_data = await database.database_conn.select_relapse_data(ctx.author.id)
             most_recent_relapse = relapse_data[0][2]
-            current_streak_length = starting_date - most_recent_relapse
+            previous_streak_length = starting_date - most_recent_relapse
+            previous_streak_length = await self.get_streak_string(previous_streak_length.seconds)
 
         #update database
         await self.db_streak_update(
@@ -40,13 +41,13 @@ class streak(commands.Cog):
             starting_date=starting_date)
 
         #update roles
-        coverted_streak_length = await self.get_streak_string(current_streak_length.seconds)
-
-        await self.update_role(ctx, coverted_streak_length[0])
+        current_streak_length =  datetime.utcnow() - starting_date
+        current_streak_length = await self.get_streak_string(current_streak_length.seconds)
+        await self.update_role(ctx, current_streak_length[0])
 
         #post message
         if previous:
-            await ctx.send(f"Your previous streak was {coverted_streak_length[0]} days, and {coverted_streak_length[1]} hours. \n Dont be dejected")
+            await ctx.send(f"Your previous streak was {previous_streak_length[0]} days, and {previous_streak_length[1]} hours. \n Dont be dejected")
         else:
             await ctx.send("This is your first sreak on record, good luck")
 
