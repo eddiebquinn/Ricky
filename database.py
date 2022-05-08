@@ -83,8 +83,8 @@ class Database:
     #Relapse Tab
 
     async def select_relapse_data(self, user_id:int):
-        query = self.relapseTab.select().where(relapseTab.c.discord_user_id == user_id).order_by(self.relapseTab.c.relapse_utc)
-        return self.conn.execute(query).fetchall
+        query = self.relapseTab.select().where(self.relapseTab.c.discord_user_id == user_id).order_by(self.relapseTab.c.relapse_utc)
+        return self.conn.execute(query).fetchall()
 
     #Userdata Tab
 
@@ -95,15 +95,15 @@ class Database:
         self.conn.execute(query)
 
     async def update_user_data(self, user_id:int):
-        query = update(userTab).where(userdata.c.id == user_id).values(
+        query = update(self.userTab).where(self.userTab.c.discord_user_id == user_id).values(
             last_update = datetime.utcnow())
         self.conn.execute(query)
 
     #Roleinfo Tab
 
     async def select_guild_roles(self, guild_id:int):
-        query = self.roleConfigTab.select().where(self.relapseTab.c.guild_id == guild_id)
-        return self.conn.execute(query).fetchall
+        query = self.roleConfigTab.select().where(self.roleConfigTab.c.guild_id == guild_id)
+        return self.conn.execute(query).fetchall()
 
 def database_init():
     global database_conn
