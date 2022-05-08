@@ -21,6 +21,8 @@ class streak(commands.Cog):
                 return
 
         #Decode the arguments to get current starting date
+        if not declared_streak_length:
+            return
         starting_date = datetime.utcnow() - timedelta(seconds=int(declared_streak_length))
 
         ## Previous streak data
