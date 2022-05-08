@@ -55,12 +55,27 @@ class streak(commands.Cog):
     @commands.cooldown(3, 900, commands.BucketType.user)
     async def update(self, ctx):
 
+        #Make sure its in the streak channel (this isnt the right way to do it, ill figure out the right way at a later date)
+        guild_data = await database.database_conn.select_guild_data(ctx.guild.id)
+        if guild_data[0][1]:
+            if guild_data[0][2] != ctx.channel.id:
+                return
+        
+        ## Previous streak data
+        userdata = await database.database_conn.seclect_user_data(ctx.author.id)
+        previous = True if userdata else False
+
+        ## If they dont have a previous streak
+        if not previous:
+            await ctx.send("You dont appear to have any previous streaks on record. Please do `!relapse` to start your first one!")
+            return
+
         #get streak str and post message
         previous_streak_data = await database.database_conn.select_relapse_data(ctx.author.id)
-        previous_start_date = previous_streak_data[0][2]
-        current_streak_length = previous_start_date.total_seconds()
-        streak_string = await self.get_streak_string(current_streak_length)
-        await ctx.send(f"Your streak is {streak_string[0]} days, and f{streak_string[1]} hours long")
+        most_recent_relapse = previous_streak_data[0][2]
+        current_streak_length = datetime.utcnow() - most_recent_relapse
+        streak_string = await self.get_streak_string(current_streak_length.seconds)
+        await ctx.send(f"Your streak is {streak_string[0]} days, and {streak_string[1]} hours long")
 
         #update roles
         await self.update_role(ctx, streak_string[0])
