@@ -9,11 +9,11 @@ class streak(commands.Cog):
     def __init__(self, client):
         print("initilised streak cog")
         self.client = client
-    
+
     @commands.command(name="relapse")
     @commands.cooldown(3, 300, commands.BucketType.user)
-    async def relapse(self, ctx,  *, time: utils.TimeConverter=None):
-        
+    async def relapse(self, ctx,  *, time: utils.TimeConverter=0):
+
         #Make sure its in the streak channel (this isnt the right way to do it, ill figure out the right way at a later date)
         data = await database.database_conn.select_guild_data(ctx.guild.id)
         if data[0][1]:
@@ -67,15 +67,15 @@ class streak(commands.Cog):
         #if previous streak insert relapse data
         if previous:
             await database.database_conn.insert_relapse(user_id=ctx.author.id, relapse_utc=starting_date)
-    
+
     async def get_streak_string(self, seconds):
         days = seconds // 24*3600
         hours = seconds // 3600
         return [days, hours]
-    
+
     async def calc_streak_length(self, previous_start_date, current_start_date):
         return (current_start_date - previous_start_date).total_seconds()
-    
+
     async def update_role(self, ctx, days):
 
         ## loop through servers the user is in --> list of all servers user is in called used_servers
@@ -99,14 +99,14 @@ class streak(commands.Cog):
             member = server.fetch_member(ctx.author.id)
             owwned_role = await self.get_owned_streak_roles(member, roles)
             owned_roles[server] = owwned_role
-        
+
         ## loop through database to find the correct role for the user, for servers he is is in --> dict where key == guild value == role called reserved_role
-        
+
         deserved_roles = {}
         for server in used_servers:
             guild_roles = await database.database_conn.select_guild_roles(server.id)
             deserved_role = await self.get_deserved_streak_role(days, guild_roles)
-            deserved_roles[server] = deserved_role 
+            deserved_roles[server] = deserved_role
 
         ## for every server in used servers
         for server in used_servers:
@@ -114,7 +114,7 @@ class streak(commands.Cog):
             #if deserved = owned return
             if owned_roles[server] == deserved_roles[server]:
                 return
-            
+
             ## get author member object for server
             guild_member = await guild.fetch_member(ctx.author.id)
 
@@ -127,7 +127,7 @@ class streak(commands.Cog):
             ## add desrved role
             await guild_member.add_roles(deserved_role[server], reason="updating streak roles")
 
-            
+
     async def get_owned_streak_roles(self, member, guild_roles):
         for role in member.roles:
             if role.id in guild_roles:

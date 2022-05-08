@@ -3,6 +3,7 @@ from discord.ext import commands
 import json
 import time
 import asyncio
+import re
 
 class TimeConverter(commands.Converter):
 
@@ -24,7 +25,7 @@ class TimeConverter(commands.Converter):
             except ValueError:
                 raise commands.BadArgument("{} is not a number!".format(v))
         return time_
-    
+
 def extract_json():
     file_ = open("settings.json")
     return json.load(file_)
