@@ -1,11 +1,11 @@
 import utils
-from sqlalchemy import create_engine, MetaData, Table, Column, ForeignKey, update
+from sqlalchemy import create_engine, MetaData, Table, Column, ForeignKey, update, desc
 from sqlalchemy.dialects.mysql import BIGINT, INTEGER, TEXT, DATETIME, TINYINT, VARCHAR
 from datetime import datetime
 
 class Database:
 
-    def __init__(self, config:dict):
+    def __init__(self, config:dict, echo:bool=True):
         """_summary_
 
         Args:
@@ -18,7 +18,7 @@ class Database:
         """
 
         self.pymsql_string = f"mysql+pymysql://{config['username']}:{config['password']}@{config['host']}/{config['database']}"
-        self.engine = create_engine(self.pymsql_string, echo=True)
+        self.engine = create_engine(self.pymsql_string, echo=echo)
         self.conn = self.engine.connect()
         self.meta = MetaData()
 
@@ -83,10 +83,14 @@ class Database:
     #Relapse Tab
 
     async def select_relapse_data(self, user_id:int):
-        query = self.relapseTab.select().where(relapseTab.c.discord_user_id == user_id).order_by(self.relapseTab.c.relapse_utc)
-        return self.conn.execute(query).fetchall
+        query = self.relapseTab.select().where(self.relapseTab.c.discord_user_id == user_id).order_by(desc(self.relapseTab.c.relapse_utc))
+        return self.conn.execute(query).fetchall()
 
     #Userdata Tab
+
+    async def seclect_user_data(self, user_id:int):
+        query = self.userTab.select().where(self.userTab.c.discord_user_id == user_id)
+        return self.conn.execute(query).fetchone()
 
     async def insert_user_data(self, user_id:int):
         query = self.userTab.insert().values(
@@ -95,16 +99,16 @@ class Database:
         self.conn.execute(query)
 
     async def update_user_data(self, user_id:int):
-        query = update(userTab).where(userdata.c.id == user_id).values(
+        query = update(self.userTab).where(self.userTab.c.discord_user_id == user_id).values(
             last_update = datetime.utcnow())
         self.conn.execute(query)
 
     #Roleinfo Tab
 
     async def select_guild_roles(self, guild_id:int):
-        query = self.roleConfigTab.select().where(self.relapseTab.c.guild_id == guild_id)
-        return self.conn.execute(query).fetchall
+        query = self.roleConfigTab.select().where(self.roleConfigTab.c.guild_id == guild_id)
+        return self.conn.execute(query).fetchall()
 
-def database_init():
+def database_init(echo):
     global database_conn
-    database_conn = Database(config=utils.extract_json()["sql_connection_settings"])
+    database_conn = Database(config=utils.extract_json()["sql_connection_settings"], echo=echo)
