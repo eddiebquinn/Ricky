@@ -19,7 +19,7 @@ async def cogs_load():
     for filename in os.listdir("./cogs"):
         if filename.endswith(".py"):
             client.load_extension(f"cogs.{filename[:-3]}")
-            
+
 def launch_discord_bot():
     token = utils.extract_json()["discord_api_settings"]["api_token"]
     client.run(token)

@@ -62,7 +62,7 @@ class Database:
             Column('server_channel_json', TEXT, nullable=False),
             Column('server_roles_json', TEXT, nullable=False),
         )
-        
+
         self.meta.create_all(self.engine)
 
     #Relapse Tab
@@ -75,7 +75,7 @@ class Database:
         self.conn.execute(query)
 
     #Guild Tab
-    
+
     async def select_guild_data(self, guild_id:int):
         query = self.guildTab.select().where(self.guildTab.c.guild_id == guild_id)
         return self.conn.execute(query).fetchall()
@@ -85,7 +85,7 @@ class Database:
     async def select_relapse_data(self, user_id:int):
         query = self.relapseTab.select().where(relapseTab.c.discord_user_id == user_id).order_by(self.relapseTab.c.relapse_utc)
         return self.conn.execute(query).fetchall
-     
+
     #Userdata Tab
 
     async def insert_user_data(self, user_id:int):
@@ -93,7 +93,7 @@ class Database:
             discord_user_id = user_id,
             last_update = datetime.utcnow())
         self.conn.execute(query)
-    
+
     async def update_user_data(self, user_id:int):
         query = update(userTab).where(userdata.c.id == user_id).values(
             last_update = datetime.utcnow())
