@@ -21,7 +21,7 @@ class streak(commands.Cog):
                 return
 
         #Decode the arguments to get current starting date
-        starting_date = datetime.utcnow() - timedelta(declared_streak_length)
+        starting_date = datetime.utcnow() - timedelta(seconds=int(declared_streak_length))
 
         ## Previous streak data
         userdata = await database.database_conn.seclect_user_data(ctx.author.id)
