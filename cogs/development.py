@@ -3,7 +3,7 @@ from discord.ext import commands
 
 class DeveloperTools(commands.Cog):
     def __init__(self, client):
-        print("initilised streak cog")
+        print("initilised development cog")
         self.client = client
 
     @commands.command(name="cog", aliases=["cogs"])
