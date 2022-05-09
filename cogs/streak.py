@@ -16,13 +16,11 @@ class streak(commands.Cog):
 
         #Make sure its in the streak channel (this isnt the right way to do it, ill figure out the right way at a later date)
         guild_data = await database.database_conn.select_guild_data(ctx.guild.id)
-        if guild_data[0][1]:
-            if guild_data[0][2] != ctx.channel.id:
+        if guild_data:
+            if guild_data[2] != ctx.channel.id:
                 return
 
         #Decode the arguments to get current starting date
-        if not declared_streak_length:
-            return
         starting_date = datetime.utcnow() - timedelta(seconds=int(declared_streak_length))
 
         ## Previous streak data
