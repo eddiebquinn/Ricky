@@ -78,7 +78,7 @@ class Database:
 
     async def select_guild_data(self, guild_id:int):
         query = self.guildTab.select().where(self.guildTab.c.guild_id == guild_id)
-        return self.conn.execute(query).fetchall()
+        return self.conn.execute(query).fetchone()
 
     #Relapse Tab
 
