@@ -28,6 +28,12 @@ class TimeConverter(commands.Converter):
             time += unit * int(part[0])
         return time
 
+async def is_in_streak_channel(ctx):
+    guild_data = await database.database_conn.select_guild_data(ctx.guild.id)
+    if guild_data[1] != 1:
+        return True
+    return guild_data[2] == ctx.channel.id
+
 def extract_json():
     file_ = open("settings.json")
     return json.load(file_)
