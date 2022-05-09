@@ -11,14 +11,9 @@ class streak(commands.Cog):
         self.client = client
 
     @commands.command(name="relapse")
+    @commands.check(utils.is_in_streak_channel)
     @commands.cooldown(3, 300, commands.BucketType.user)
     async def relapse(self, ctx,  *, declared_streak_length:utils.TimeConverter=0.0):
-
-        #Make sure its in the streak channel (this isnt the right way to do it, ill figure out the right way at a later date)
-        guild_data = await database.database_conn.select_guild_data(ctx.guild.id)
-        if guild_data:
-            if guild_data[2] != ctx.channel.id:
-                return
 
         #Decode the arguments to get current starting date
         if not declared_streak_length:
@@ -54,15 +49,10 @@ class streak(commands.Cog):
             await ctx.send("This is your first sreak on record, good luck")
 
     @commands.command(name="update")
+    @commands.check(utils.is_in_streak_channel)
     @commands.cooldown(3, 900, commands.BucketType.user)
     async def update(self, ctx):
 
-        #Make sure its in the streak channel (this isnt the right way to do it, ill figure out the right way at a later date)
-        guild_data = await database.database_conn.select_guild_data(ctx.guild.id)
-        if guild_data:
-            if guild_data[2] != ctx.channel.id:
-                return
-        
         ## Previous streak data
         userdata = await database.database_conn.seclect_user_data(ctx.author.id)
         previous = True if userdata else False
