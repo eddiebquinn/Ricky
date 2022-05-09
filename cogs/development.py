@@ -1,9 +1,9 @@
 from discord.ext import commands
 
 
-class DeveloperTools(commands.Cog):
+class Development(commands.Cog):
     def __init__(self, client):
-        print("initilised development cog")
+        print(f"initilised {__class__.__cog_name__} cog")
         self.client = client
 
     @commands.command(name="cog", aliases=["cogs"])
@@ -25,4 +25,4 @@ class DeveloperTools(commands.Cog):
         await ctx.send(f"pong! Latency is {self.client.latency * 1000}ms")
 
 def setup(client):
-    client.add_cog(DeveloperTools(client))
+    client.add_cog(Development(client))

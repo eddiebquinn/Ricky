@@ -4,10 +4,10 @@ import discord_conn
 from discord.ext import commands
 from datetime import datetime, timedelta
 
-class streak(commands.Cog):
+class Streak(commands.Cog):
 
     def __init__(self, client):
-        print("initilised streak cog")
+        print(f"initilised {__class__.__cog_name__} cog")
         self.client = client
 
     @commands.command(name="relapse")
@@ -160,4 +160,4 @@ class streak(commands.Cog):
         return None
 
 def setup(client):
-    discord_conn.client.add_cog(streak(client))
+    discord_conn.client.add_cog(Streak(client))
