@@ -76,7 +76,7 @@ class streak(commands.Cog):
         previous_streak_data = await database.database_conn.select_relapse_data(ctx.author.id)
         most_recent_relapse = previous_streak_data[0][2]
         current_streak_length = datetime.utcnow() - most_recent_relapse
-        streak_string = await self.get_streak_string(current_streak_length.seconds)
+        streak_string = await self.get_streak_string(current_streak_length.total_seconds())
         await ctx.send(f"Your streak is {streak_string[0]} days, and {streak_string[1]} hours long")
 
         #update roles
@@ -93,8 +93,8 @@ class streak(commands.Cog):
 
     async def get_streak_string(self, seconds):
         days = seconds // 86400
-        hours = seconds // 3600
-        return [days, hours]
+        hours = (seconds % 86400) // 3600
+        return [int(days), int(hours)]
 
     async def calc_streak_length(self, previous_start_date, current_start_date):
         return (current_start_date - previous_start_date).total_seconds()
