@@ -1,5 +1,6 @@
 from discord.ext import commands
-
+from files import motiv
+import random
 
 class Development(commands.Cog):
     def __init__(self, client):
@@ -23,6 +24,11 @@ class Development(commands.Cog):
     async def ping(self, ctx):
         """Check the latency of the bot"""
         await ctx.send(f"pong! Latency is {self.client.latency * 1000}ms")
+        
+    @commands.command(name="motivate")
+    async def moti(self, ctx):
+        """Sends a random motivational image to the user."""
+        await ctx.send(random.choice(motiv))
 
 def setup(client):
     client.add_cog(Development(client))
