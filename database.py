@@ -167,6 +167,6 @@ def database_init(echo=True):
     Args:
         echo (bool, optional): Weather the SQLalchemy should be verbose.. Defaults to True.
     """
-    global database_conn
-    database_conn = Database(config=utils.extract_json()[
+    global DATABASE_CONN
+    DATABASE_CONN = Database(config=utils.extract_json()[
                              "sql_connection_settings"], echo=echo)

@@ -2,8 +2,6 @@ import utils
 import database
 import discord_conn
 
-global database_conn
-
 
 def init():
     """ Launches the bot """

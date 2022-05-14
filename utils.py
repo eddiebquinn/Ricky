@@ -44,7 +44,7 @@ async def is_in_streak_channel(ctx):
     Returns:
         bool: Returns True if the channel if the streak channel
     """
-    guild_data = await database.database_conn.select_guild_data(ctx.guild.id)
+    guild_data = await database.DATABASE_CONN.select_guild_data(ctx.guild.id)
     if guild_data[1] != 1:
         return True
     return guild_data[2] == ctx.channel.id
