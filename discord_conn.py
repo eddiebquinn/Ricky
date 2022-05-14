@@ -12,7 +12,6 @@ client = commands.Bot(command_prefix="!", intents=intents, case_insensitive=True
 @client.event
 async def on_ready():
     await client.wait_until_ready()
-    await client.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="Complaints in DMs."))
     await cogs_load()
     print("Bot is active")
 
