@@ -2,6 +2,7 @@ from discord.ext import commands
 import traceback
 import sys
 
+
 class ErrorHandler(commands.Cog):
 
     def __init__(self, client):
@@ -10,16 +11,18 @@ class ErrorHandler(commands.Cog):
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
+        """Captures errors as they happen and deals with them"""
         if hasattr(ctx.command, 'on_error'):
             return
 
         error = getattr(error, 'original', error)
         if isinstance(error, commands.CommandOnCooldown):
-            time =  int(error.retry_after) // 60
+            time = int(error.retry_after) // 60
             await ctx.send(content=f'This command is on cooldown. Please wait {time}m', delete_after=5)
 
         else:
-            traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
+            traceback.print_exception(
+                type(error), error, error.__traceback__, file=sys.stderr)
 
 
 def setup(client):

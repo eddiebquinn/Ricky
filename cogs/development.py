@@ -1,13 +1,19 @@
 from discord.ext import commands
 
+
 class Development(commands.Cog):
     def __init__(self, client):
         print(f"initilised {__class__.__cog_name__} cog")
         self.client = client
 
     @commands.command(name="cog", aliases=["cogs"])
-    async def cog(self, ctx, action, *args):
-        """Command to manually toggle cogs. For action use either\n**load** - load the cog\n**unload** - unload the cog\n**reload** - reload the cog"""
+    async def cog(self, ctx, action: str, *args):
+        """Command to manually toggle cogs.
+
+        Args:
+            action (str): Valid actions are load, unload, reload
+            args (str): The cogs you want to perform and action on
+        """
         for arg in args:
             if action == "load":
                 self.client.load_extension(f"cogs.{arg}")
