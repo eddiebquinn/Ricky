@@ -13,6 +13,7 @@ class Meta(commands.Cog):
 
     @tasks.loop(minutes=1)
     async def activity_cycle(self):
+        """Cycles through presences every min"""
         await self.client.change_presence(
             status=discord.Status.online, activity=discord.Game(
                 next(self.status))

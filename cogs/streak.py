@@ -15,7 +15,11 @@ class Streak(commands.Cog):
     @commands.check(utils.is_in_streak_channel)
     @commands.cooldown(3, 300, commands.BucketType.user)
     async def relapse(self, ctx,  *, declared_streak_length: utils.TimeConverter = 0.0):
+        """Updated the users roles and databse entry with most recent relaspe, and posts message
 
+        Args:
+            declared_streak_length (utils.TimeConverter, optional): A series of time keys and coefficents (1d 2m 3h). Defaults to 0.0.
+        """
         # Decode the arguments to get current starting date
         if not declared_streak_length:
             return
@@ -53,7 +57,7 @@ class Streak(commands.Cog):
     @commands.check(utils.is_in_streak_channel)
     @commands.cooldown(3, 900, commands.BucketType.user)
     async def update(self, ctx):
-
+        """Updated the users roles and posts their current streak length"""
         # Previous streak data
         userdata = await database.database_conn.seclect_user_data(ctx.author.id)
         previous = True if userdata else False
@@ -73,7 +77,13 @@ class Streak(commands.Cog):
         # update roles
         await self.update_role(ctx, streak_string[0])
 
-    async def db_streak_update(self, ctx, previous, starting_date):
+    async def db_streak_update(self, ctx, previous: bool, starting_date):
+        """Adds/updates the users most recent update in user table
+
+        Args:
+            previous (bool): Weather the user has a previous streak on record
+            starting_date (timedelta): The length of the streak
+        """
         if previous:
             await database.database_conn.update_user_data(ctx.author.id)
         else:
@@ -82,15 +92,37 @@ class Streak(commands.Cog):
         # if previous streak insert relapse data
         await database.database_conn.insert_relapse(user_id=ctx.author.id, relapse_utc=starting_date)
 
-    async def get_streak_string(self, seconds):
+    async def get_streak_string(self, seconds: int):
+        """Converts seconds into a tuple of days and hours
+
+        Args:
+            seconds (int): The seconds to be converted
+
+        Returns:
+            list: A list comprised of [days, hours] where items are intergers
+        """
         days = seconds // 86400
         hours = (seconds % 86400) // 3600
         return [int(days), int(hours)]
 
     async def calc_streak_length(self, previous_start_date, current_start_date):
+        """Returns streak length based on two imputs
+
+        Args:
+            previous_start_date (timedate): The previous relapse date
+            current_start_date (timedate): The current start date
+
+        Returns:
+            timedelta: The current streak length
+        """
         return (current_start_date - previous_start_date).total_seconds()
 
     async def update_role(self, ctx, current_streak_length):
+        """Updates the users roles based on current streak length
+
+        Args:
+            current_streak_length (time delta): The total streak length in seconds
+        """
 
         # loop through servers the user is in --> list of all servers user is in called used_servers
         gross_servers = self.client.guilds
@@ -141,13 +173,31 @@ class Streak(commands.Cog):
             # add desrved role
             await guild_member.add_roles(deserved_role[server], reason="updating streak roles")
 
-    async def get_owned_streak_roles(self, member, guild_roles):
+    async def get_owned_streak_roles(self, member: discord.Member, guild_roles):
+        """Returns the roles the user currently has 
+
+        Args:
+            member (discord.Member): The user of the server being checked
+            guild_roles (list): A list of server roles
+
+        Returns:
+            discord.Role: The role the user has
+        """
         for role in member.roles:
             if role.id in guild_roles:
                 return role
         return None
 
     async def get_deserved_streak_role(self, days, guild_roles):
+        """Returns the role the user deserves
+
+        Args:
+            days (timedelta): The current streak length
+            guild_roles (list): List of the streak roles the guild has
+
+        Returns:
+            discord.Role: The discord role the user deserves based on their streak length
+        """
         role = []
         for role in guild_roles:
             if days < role[2]:

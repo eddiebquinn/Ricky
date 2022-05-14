@@ -7,15 +7,11 @@ from datetime import datetime
 class Database:
 
     def __init__(self, config: dict, echo: bool = True):
-        """_summary_
+        """Initalises the databse
 
         Args:
-            config (dict): Part of the settings.JSON file, should contain
-                -Mysql username
-                -Mysql password
-                -Host IP
-                -Host port
-                -Scheema name
+            config (dict): Part of the settings.JSON file
+            echo (bool, optional): Weather the SQLalchemy should be verbose. Defaults to True.
         """
 
         self.pymsql_string = f"mysql+pymysql://{config['username']}:{config['password']}@{config['host']}/{config['database']}"
@@ -75,6 +71,13 @@ class Database:
 
     # Relapse Tab
     async def insert_relapse(self, user_id: int, relapse_utc=datetime.utcnow(), previous_streak_invalid=False):
+        """Inserts relapse into relapse table
+
+        Args:
+            user_id (int): The discord user id
+            relapse_utc (_type_, optional): The utc of the relaspe.
+            previous_streak_invalid (bool, optional): Weather the previous streak is valid.
+        """
         query = self.relapseTab.insert().values(
             discord_user_id=user_id,
             relapse_utc=relapse_utc,
@@ -83,44 +86,87 @@ class Database:
         self.conn.execute(query)
 
     # Guild Tab
-
     async def select_guild_data(self, guild_id: int):
+        """Returns the data of the specified guild
+
+        Args:
+            guild_id (int): The id of the requested guild
+
+        Returns:
+            tuple: The data of the guild requested
+        """
         query = self.guildTab.select().where(self.guildTab.c.guild_id == guild_id)
         return self.conn.execute(query).fetchone()
 
     # Relapse Tab
-
     async def select_relapse_data(self, user_id: int):
+        """Returns a list of users previous relapses
+
+        Args:
+            user_id (int): The id of the requested user
+
+        Returns:
+            list: The previous relapses of that user
+        """
         query = self.relapseTab.select().where(self.relapseTab.c.discord_user_id ==
                                                user_id).order_by(desc(self.relapseTab.c.relapse_utc))
         return self.conn.execute(query).fetchall()
 
     # Userdata Tab
-
     async def seclect_user_data(self, user_id: int):
+        """Returns a tuple of the users data
+
+        Args:
+            user_id (int): The id of the requested user
+
+        Returns:
+            tuple: The user data
+        """
         query = self.userTab.select().where(self.userTab.c.discord_user_id == user_id)
         return self.conn.execute(query).fetchone()
 
     async def insert_user_data(self, user_id: int):
+        """Inserts a new user into the databse
+
+        Args:
+            user_id (int): The id of the user being recorded
+        """
         query = self.userTab.insert().values(
             discord_user_id=user_id,
             last_update=datetime.utcnow())
         self.conn.execute(query)
 
     async def update_user_data(self, user_id: int):
+        """Updates the data of a specfic user in the user table
+
+        Args:
+            user_id (int): The user whos data is to be updated
+        """
         query = update(self.userTab).where(self.userTab.c.discord_user_id == user_id).values(
             last_update=datetime.utcnow())
         self.conn.execute(query)
 
     # Roleinfo Tab
-
     async def select_guild_roles(self, guild_id: int):
+        """returns a list of the roles set up for a guild
+
+        Args:
+            guild_id (int): The guild of which the returned roles are subject to
+
+        Returns:
+            list: list of roles assoacited with the given server
+        """
         query = self.roleConfigTab.select().where(
             self.roleConfigTab.c.guild_id == guild_id)
         return self.conn.execute(query).fetchall()
 
 
-def database_init(echo):
+def database_init(echo=True):
+    """Initalises the databse
+
+    Args:
+        echo (bool, optional): Weather the SQLalchemy should be verbose.. Defaults to True.
+    """
     global database_conn
     database_conn = Database(config=utils.extract_json()[
                              "sql_connection_settings"], echo=echo)
