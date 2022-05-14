@@ -1,6 +1,7 @@
 import utils
 import database
 import discord_conn
+import discord
 from discord.ext import commands
 from datetime import datetime, timedelta
 
@@ -21,7 +22,7 @@ class Streak(commands.Cog):
             declared_streak_length (utils.TimeConverter, optional): A series of time keys and coefficents (1d 2m 3h). Defaults to 0.0.
         """
         # Decode the arguments to get current starting date
-        if not declared_streak_length:
+        if declared_streak_length is False:
             return
         starting_date = datetime.utcnow() - timedelta(seconds=int(declared_streak_length))
 
