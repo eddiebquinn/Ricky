@@ -42,23 +42,32 @@ class Setup(commands.Cog):
     @commands.command(name="toggle")
     @commands.has_guild_permissions(manage_guild=True)
     @commands.cooldown(3, 300, commands.BucketType.user)
-    async def toggle_db_settings(self, ctx, setting=None):
+    async def toggle_db_settings(self, ctx, raw_setting=None):
 
         settings = {"channel_limit": "streak_channel_limit",
                     "streak_roles": "roles_enabled"}
-        if setting not in settings.keys():
+        if raw_setting not in settings.keys():
             await ctx.send("please toggle a valid setting")
             return
 
-        data = await database.DATABASE_CONN.update_guild_toggles(ctx.guild.id, settings[setting])
+        data = await database.DATABASE_CONN.select_guild_data(ctx.guild.id)
+        column_map = {"streak_channel_limit": 1, "roles_enabled": 3}
+        value = data[column_map[settings[raw_setting]]]
+        if value == 0:
+            new_val = 1
+        if value == 1:
+            new_val = 0
+
+        data = await database.DATABASE_CONN.update_guild_data(ctx.guild.id, {settings[raw_setting]: new_val})
         if data:
-            await ctx.send(f"Successfully updated {setting}")
+            await ctx.send(f"Sucsessfully updated {raw_setting}")
 
     @commands.command(name="setup_streak_channel")
     @commands.has_guild_permissions(manage_guild=True)
     @commands.cooldown(3, 300, commands.BucketType.user)
     async def setup_streak_channel(self, ctx):
-        data = await database.DATABASE_CONN.update_streak_channel(ctx.guild.id, ctx.channel.id)
+        # data = await database.DATABASE_CONN.update_streak_channel(ctx.guild.id, ctx.channel.id)
+        data = await database.DATABASE_CONN.update_guild_data(ctx.guild.id, {"strak_roles_channel": ctx.channel.id})
         if data:
             await ctx.send(f"Sucsessfully updated streak channel to {ctx.channel.name}")
 
