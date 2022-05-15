@@ -1,5 +1,6 @@
 .vscode
-
-settings.json
 __pycache__/
 cogs/__pycache__/
+
+settings.json
+ricky.log

@@ -1,4 +1,4 @@
-import utils
+import utils.utils as utils
 from sqlalchemy import create_engine, MetaData, Table, Column, ForeignKey, update, desc
 from sqlalchemy.dialects.mysql import BIGINT, INTEGER, TEXT, DATETIME, TINYINT, VARCHAR
 from datetime import datetime
@@ -23,7 +23,8 @@ class Database:
             'user', self.meta,
             Column('discord_user_id', BIGINT,
                    primary_key=True, nullable=False),
-            Column('last_update', DATETIME)
+            Column('last_update', DATETIME),
+            Column('developer', TINYINT, nullable=False, default=0)
         )
 
         self.guildTab = Table(
@@ -213,4 +214,4 @@ def database_init(echo=True):
     """
     global DATABASE_CONN
     DATABASE_CONN = Database(config=utils.extract_json()[
-                             "sql_connection_settings"], echo=echo)
+        "sql_connection_settings"], echo=echo)

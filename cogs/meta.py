@@ -1,4 +1,5 @@
 import discord
+from utils.logger import LOGGER
 from discord.ext import commands, tasks
 from itertools import cycle
 
@@ -6,7 +7,7 @@ from itertools import cycle
 class Meta(commands.Cog):
 
     def __init__(self, client):
-        print(f"initilised {__class__.__cog_name__} cog")
+        LOGGER.warning(f"initilised {__class__.__cog_name__} cog")
         self.client = client
         self.status = cycle(["Hi, im ricky!"])
         self.activity_cycle.start()

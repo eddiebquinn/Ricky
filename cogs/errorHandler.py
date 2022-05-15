@@ -1,4 +1,5 @@
 from discord.ext import commands
+from utils.logger import LOGGER
 import traceback
 import sys
 
@@ -6,7 +7,7 @@ import sys
 class ErrorHandler(commands.Cog):
 
     def __init__(self, client):
-        print(f"initilised {__class__.__cog_name__} cog")
+        LOGGER.warning(f"initilised {__class__.__cog_name__} cog")
         self.client = client
 
     @commands.Cog.listener()
@@ -23,6 +24,7 @@ class ErrorHandler(commands.Cog):
         else:
             traceback.print_exception(
                 type(error), error, error.__traceback__, file=sys.stderr)
+            LOGGER.error(f'{type(error)}, {error}, {error.__traceback__}')
 
 
 def setup(client):

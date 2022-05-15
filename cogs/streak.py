@@ -1,4 +1,5 @@
-import utils
+import utils.utils as utils
+from utils.logger import LOGGER
 import database
 import discord_conn
 import discord
@@ -9,7 +10,7 @@ from datetime import datetime, timedelta
 class Streak(commands.Cog):
 
     def __init__(self, client):
-        print(f"initilised {__class__.__cog_name__} cog")
+        LOGGER.warning(f"initilised {__class__.__cog_name__} cog")
         self.client = client
 
     @commands.command(name="relapse")
@@ -93,7 +94,7 @@ class Streak(commands.Cog):
             current_streak_length (time delta): The total streak length in seconds
         """
 
-        used_guilds = await self.get_used_guilds(author=ctx.author, guild=ctx.guild)
+        used_guilds = await self.get_used_guilds(author=ctx.author)
         owned_roles = await self.get_owned_roles(author=ctx.author, used_guilds=used_guilds)
         deserved_roles = await self.get_deserved_roles(used_guilds=used_guilds, current_streak_length=current_streak_length)
 
