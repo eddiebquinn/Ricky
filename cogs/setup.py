@@ -36,10 +36,12 @@ class Setup(commands.Cog):
     async def setup_guild(self, ctx):
         """Adds the guild to the database, in case the bot failed to do so automatically"""
         guild_data = await database.DATABASE_CONN.select_guild_data(ctx.guild.id)
-        if len(guild_data) > 0:
-            await ctx.send(f"Data for {ctx.guild.name}  is already in the database")
-            return
+        if guild_data is not None:
+            if len(guild_data) > 0:
+                await ctx.send(f"Data for {ctx.guild.name}  is already in the database")
+                return
         await database.DATABASE_CONN.insert_guild_data(ctx.guild.id)
+        await ctx.send(f"Data for {ctx.guild.name} inserted into database")
 
     @commands.command(name="toggle")
     @commands.has_guild_permissions(manage_guild=True)
