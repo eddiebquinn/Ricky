@@ -50,6 +50,11 @@ async def is_in_streak_channel(ctx):
     return guild_data[2] == ctx.channel.id
 
 
+async def is_developer(ctx):
+    userdata = await database.DATABASE_CONN.seclect_user_data(ctx.author.id)
+    return userdata[2] == 1
+
+
 def extract_json():
     """Extracts settings.json file into a dictionary
 

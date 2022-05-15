@@ -1,4 +1,5 @@
 from discord.ext import commands
+import utils
 
 
 class Development(commands.Cog):
@@ -7,6 +8,7 @@ class Development(commands.Cog):
         self.client = client
 
     @commands.command(name="cog", aliases=["cogs"])
+    @commands.check(utils.is_developer)
     async def cog(self, ctx, action: str, *args):
         """Command to manually toggle cogs.
 
