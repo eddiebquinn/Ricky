@@ -168,6 +168,12 @@ class Database:
             role_id=role_id)
         self.conn.execute(query)
 
+    async def delete_guild_roles(self, id: int):
+        """deletes row with a specic role id"""
+        query = self.roleConfigTab.delete().where(
+            self.roleConfigTab.c.role_config_id == id)
+        self.conn.execute(query)
+
 
 def database_init(echo=True):
     """Initalises the databse
