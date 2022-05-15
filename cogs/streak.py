@@ -124,10 +124,17 @@ class Streak(commands.Cog):
         Args:
             current_streak_length (time delta): The total streak length in seconds
         """
+        guild_streak_roles = await database.DATABASE_CONN.select_guild_roles(guild.id)
 
         used_guilds = await self.get_used_guilds(author=ctx.author)
-        owned_roles = await self.get_owned_roles(author=ctx.author, used_guilds=used_guilds)
-        deserved_roles = await self.get_deserved_roles(used_guilds=used_guilds, current_streak_length=current_streak_length)
+        owned_roles = await self.get_owned_roles(
+            author=ctx.author,
+            used_guilds=used_guilds,
+            guild_streak_roles=guild_streak_roles)
+        deserved_roles = await self.get_deserved_roles(
+            used_guilds=used_guilds,
+            current_streak_length=current_streak_length,
+            guild_streak_roles=guild_streak_roles)
 
         for guild in used_guilds:
             if owned_roles[guild] == deserved_roles[guild]:
@@ -147,13 +154,11 @@ class Streak(commands.Cog):
                     used_guilds.append(guild)
         return used_guilds
 
-    async def get_owned_roles(self, author, used_guilds):
+    async def get_owned_roles(self, author, used_guilds, guild_streak_roles):
         owned_roles = {}
         for guild in used_guilds:
-            guild_roles = await database.DATABASE_CONN.select_guild_roles(guild.id)
             roles = []
-            # This likey can be cut down by saying to only select that column
-            for role in guild_roles:
+            for role in guild_streak_roles:
                 roles.append(role[3])
 
             member = await guild.fetch_member(author.id)
@@ -163,10 +168,9 @@ class Streak(commands.Cog):
             owned_roles[guild] = role
         return owned_roles
 
-    async def get_deserved_roles(self, used_guilds, current_streak_length):
+    async def get_deserved_roles(self, used_guilds, current_streak_length, guild_streak_roles):
         deserved_roles = {}
         for guild in used_guilds:
-            guild_streak_roles = await database.DATABASE_CONN.select_guild_roles(guild.id)
             role = await self.get_deserved_streak_role(current_streak_length, guild_streak_roles)
             if role is not None:
                 role = guild.get_role(role)
