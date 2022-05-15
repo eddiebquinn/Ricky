@@ -106,18 +106,6 @@ class Streak(commands.Cog):
         hours = (seconds % 86400) // 3600
         return [int(days), int(hours)]
 
-    async def calc_streak_length(self, previous_start_date, current_start_date):
-        """Returns streak length based on two imputs
-
-        Args:
-            previous_start_date (timedate): The previous relapse date
-            current_start_date (timedate): The current start date
-
-        Returns:
-            timedelta: The current streak length
-        """
-        return (current_start_date - previous_start_date).total_seconds()
-
     async def update_role(self, ctx, current_streak_length):
         """Updates the users roles based on current streak length
 
@@ -150,63 +138,38 @@ class Streak(commands.Cog):
     async def get_owned_roles(self, author, used_guilds):
         owned_roles = {}
         for guild in used_guilds:
-            guild_roles = await database.DATABASE_CONN.select_guild_roles(guild.id)
-            roles = []
-            # This likey can be cut down by saying to only select that column
-            for role in guild_roles:
-                roles.append(role[3])
-
+            guild_roles_raw = await database.DATABASE_CONN.select_guild_roles(guild.id)
+            guild_roles = []
+            for role in guild_roles_raw:
+                guild_roles.append(role[3])
             member = await guild.fetch_member(author.id)
-            role = await self.get_owned_streak_roles(member, roles)
-            if role is not None:
-                role = guild.get_role(role)
-            owned_roles[guild] = role
+            owned_role = None
+            for role in member.roles:
+                if role.id in guild_roles:
+                    owned_role = role
+                    break
+            if owned_role is not None:
+                owned_role = guild.get_role(owned_role)
+            owned_roles[guild] = owned_role
         return owned_roles
 
     async def get_deserved_roles(self, used_guilds, current_streak_length):
         deserved_roles = {}
         for guild in used_guilds:
             guild_streak_roles = await database.DATABASE_CONN.select_guild_roles(guild.id)
-            role = await self.get_deserved_streak_role(current_streak_length, guild_streak_roles)
-            if role is not None:
-                role = guild.get_role(role)
-            deserved_roles[guild] = role
+            deserved_role = None
+            potential_roles = []
+            for role in guild_streak_roles:
+                if current_streak_length < role[2]:
+                    potential_roles.append(int(role[2]))
+            if len(potential_roles) > 0:
+                min_val = min(potential_roles)
+                min_val_index = potential_roles.index(min_val)
+                deserved_role = guild_streak_roles[min_val_index][3]
+            if deserved_role is not None:
+                deserved_role = guild.get_role(deserved_role)
+            deserved_roles[guild] = deserved_role
         return deserved_roles
-
-    async def get_owned_streak_roles(self, member: discord.Member, guild_roles):
-        """Returns the roles the user currently has 
-
-        Args:
-            member (discord.Member): The user of the server being checked
-            guild_roles (list): A list of server roles
-
-        Returns:
-            discord.Role: The role the user has
-        """
-        for role in member.roles:
-            if role.id in guild_roles:
-                return role
-        return None
-
-    async def get_deserved_streak_role(self, days, guild_roles):
-        """Returns the role the user deserves
-
-        Args:
-            days (timedelta): The current streak length
-            guild_roles (list): List of the streak roles the guild has
-
-        Returns:
-            discord.Role: The discord role the user deserves based on their streak length
-        """
-        roles = []
-        for role in guild_roles:
-            if days < role[2]:
-                roles.append(int(role[2]))
-        if len(role) > 0:
-            min_val = min(roles)
-            min_val_index = roles.index(min_val)
-            return guild_roles[min_val_index][3]
-        return None
 
 
 def setup(client):
