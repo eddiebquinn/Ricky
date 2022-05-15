@@ -160,6 +160,14 @@ class Database:
             self.roleConfigTab.c.guild_id == guild_id)
         return self.conn.execute(query).fetchall()
 
+    async def insert_guild_roles(self, guild_id, day_reach, role_id):
+        """create this before merge"""
+        query = self.roleConfigTab.insert().values(
+            guild_id=guild_id,
+            day_reach=day_reach,
+            role_id=role_id)
+        self.conn.execute(query)
+
 
 def database_init(echo=True):
     """Initalises the databse
