@@ -108,7 +108,30 @@ class Database:
         )
         self.conn.execute(query)
 
+    async def update_guild_toggles(self, g_id: int, column):
+        data = await self.select_guild_data(g_id)
+        column_map = {"streak_channel_limit": 1, "roles_enabled": 3}
+        value = data[column_map[column]]
+
+        if value == 0:
+            new_val = 1
+        if value == 1:
+            new_val = 0
+
+        values = {column: new_val}
+        query = update(self.guildTab).where(self.guildTab.c.guild_id == g_id).values(
+            values)
+        self.conn.execute(query)
+        return True
+
+    async def update_streak_channel(self, guild_id, channel_id):
+        query = update(self.guildTab).where(self.guildTab.c.guild_id == guild_id).values(
+            strak_roles_channel=channel_id
+        )
+        return True
+
     # Relapse Tab
+
     async def select_relapse_data(self, user_id: int):
         """Returns a list of users previous relapses
 
