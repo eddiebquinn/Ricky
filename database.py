@@ -98,6 +98,16 @@ class Database:
         query = self.guildTab.select().where(self.guildTab.c.guild_id == guild_id)
         return self.conn.execute(query).fetchone()
 
+    async def insert_guild_data(self, guild_id: int):
+        """write this"""
+        query = self.guildTab.insert().values(
+            guild_id=guild_id,
+            streak_channel_limit=0,
+            roles_enabled=0,
+            porn_filter_enabled=0
+        )
+        self.conn.execute(query)
+
     # Relapse Tab
     async def select_relapse_data(self, user_id: int):
         """Returns a list of users previous relapses

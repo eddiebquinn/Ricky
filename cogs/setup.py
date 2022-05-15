@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from discord.ext.commands import Cog
 import database
 
 
@@ -21,6 +22,22 @@ class Setup(commands.Cog):
             ((245, 80, 0), "2nd - 3rd day", 3),
             ((255, 0, 0), "1st day", 1)
         )
+
+    @Cog.listener()
+    async def on_guild_join(self, guild):
+        link = "https://github.com/eddiebquinn/Ricky/wiki/Guild-configuration-for-admins-moderators"
+        await ctx.send(f"Hi, im {self.bot_name}, please check out {link} for instructions on how to configure me")
+        await database.DATABASE_CONN.insert_guild_data(guild.id)
+
+    @commands.command(name="setup_guild")
+    @commands.has_guild_permissions(manage_roles=True)
+    @commands.cooldown(1, 300, commands.BucketType.user)
+    async def setup_guild(self, ctx):
+        guild_data = await database.DATABASE_CONN.select_guild_data(ctx.guild.id)
+        if len(guild_data) > 0:
+            await ctx.send(f"Data for {ctx.guild.name}  is already in the database")
+            return
+        await database.DATABASE_CONN.insert_guild_data(ctx.guild.id)
 
     @commands.command(name="Setup_roles")
     @commands.has_guild_permissions(manage_roles=True)
