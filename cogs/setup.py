@@ -25,6 +25,7 @@ class Setup(commands.Cog):
 
     @Cog.listener()
     async def on_guild_join(self, guild):
+        """Listener that activates when the bot is added to a new guild and adds guild to database"""
         link = "https://github.com/eddiebquinn/Ricky/wiki/Guild-configuration-for-admins-moderators"
         await ctx.send(f"Hi, im {self.bot_name}, please check out {link} for instructions on how to configure me")
         await database.DATABASE_CONN.insert_guild_data(guild.id)
@@ -33,6 +34,7 @@ class Setup(commands.Cog):
     @commands.has_guild_permissions(manage_guild=True)
     @commands.cooldown(1, 300, commands.BucketType.user)
     async def setup_guild(self, ctx):
+        """Adds the guild to the database, in case the bot failed to do so automatically"""
         guild_data = await database.DATABASE_CONN.select_guild_data(ctx.guild.id)
         if len(guild_data) > 0:
             await ctx.send(f"Data for {ctx.guild.name}  is already in the database")
@@ -43,6 +45,11 @@ class Setup(commands.Cog):
     @commands.has_guild_permissions(manage_guild=True)
     @commands.cooldown(3, 300, commands.BucketType.user)
     async def toggle_db_settings(self, ctx, raw_setting=None):
+        """Used to toggle database settings related to the guild table
+
+        Args:
+            raw_setting (str): You can choose either `channel_limit` or `streak_roles`
+        """
 
         settings = {"channel_limit": "streak_channel_limit",
                     "streak_roles": "roles_enabled"}
@@ -66,7 +73,7 @@ class Setup(commands.Cog):
     @commands.has_guild_permissions(manage_guild=True)
     @commands.cooldown(3, 300, commands.BucketType.user)
     async def setup_streak_channel(self, ctx):
-        # data = await database.DATABASE_CONN.update_streak_channel(ctx.guild.id, ctx.channel.id)
+        """Chnages the streak channel to the channel command is sent it"""
         data = await database.DATABASE_CONN.update_guild_data(ctx.guild.id, {"strak_roles_channel": ctx.channel.id})
         if data:
             await ctx.send(f"Sucsessfully updated streak channel to {ctx.channel.name}")
@@ -75,7 +82,13 @@ class Setup(commands.Cog):
     @commands.has_guild_permissions(manage_guild=True)
     @commands.cooldown(1, 300, commands.BucketType.user)
     async def build_roles(self, ctx, *args):
-        """Crates default roles and adds them to the database"""
+        """Crates default roles and adds them to the database
+
+        Args:
+            args (str): You can choose either `overide` or `hoist`.
+                Overide deleted old roles and makes new ones
+                Hoist makes it so the roles are displayed seperatley to others
+        """
         overide = False
         hoist = False
         for arg in args:
@@ -106,8 +119,13 @@ class Setup(commands.Cog):
         if response is True:
             await ctx.send("Role creation succsessful")
 
-    async def do_overide(self, guild, roles):
-        """do docstring"""
+    async def do_overide(self, guild: discord.Guild, roles: list):
+        """Deleted old roles and associated database entries
+
+        Args:
+            guild (discord.Guild): The guild of which the roles are being reset for
+            roles (list): The list of roles to be reset
+        """
         for role in roles:
             guild_role = guild.get_role(role[3])
             try:
@@ -116,9 +134,16 @@ class Setup(commands.Cog):
                 pass
             await database.DATABASE_CONN.delete_guild_roles(role[0])
 
-    async def create_roles(self, guild, hoist: bool = False):
-        """write this before merge"""
+    async def create_roles(self, guild: discord.Guild, hoist: bool = False):
+        """Creates the standard discord recovery roles
 
+        Args:
+            guild (discord.Guild): The guild of which the roles are being made for
+            hoist (bool, optional): Weather the roles should be displayed separately. Defaults to False.
+
+        Returns:
+            list: List of created roles
+        """
         spawned_roles = []
         for role in self.streak_roles:
             rgb = role[0]
@@ -133,7 +158,16 @@ class Setup(commands.Cog):
 
         return spawned_roles
 
-    async def roles_into_database(self, guild, roles):
+    async def roles_into_database(self, guild: discord.Guild, roles: list):
+        """Inserts a series of roles into the database
+
+        Args:
+            guild (discord.Guild): The associated guild to the roles being added
+            roles (list): The roles whos data is subject to being inserted into the database
+
+        Returns:
+            Bool: Returns True if data is succsessfully inserted into databse
+        """
         for role in roles:
             await database.DATABASE_CONN.insert_guild_roles(
                 guild_id=guild.id,

@@ -126,7 +126,15 @@ class Streak(commands.Cog):
                 await guild_member.remove_roles(owned_roles[guild], reason="updating streak roles")
             await guild_member.add_roles(deserved_roles[guild], reason="updating streak roles")
 
-    async def get_used_guilds(self, author, guild):
+    async def get_used_guilds(self, author):
+        """Gets the guilds of which the user is part, and has roles activated
+
+        Args:
+            author: The user who the guilds are being checked against
+
+        Returns:
+            list: The list of guilds which meet the conditions
+        """
         gross_guilds = self.client.guilds
         used_guilds = []
         for guild in gross_guilds:
@@ -137,7 +145,16 @@ class Streak(commands.Cog):
                         used_guilds.append(guild)
         return used_guilds
 
-    async def get_owned_roles(self, author, used_guilds):
+    async def get_owned_roles(self, author, used_guilds: list):
+        """Gets the owned roles of the member in each guild
+
+        Args:
+            author: The user who the guilds are being checked against
+            used_guilds (list): The guilds which both the user and bot are in, which have roles turned on
+
+        Returns:
+            dict: Dictionary the used servers, and the streak role the user has
+        """
         owned_roles = {}
         for guild in used_guilds:
             guild_roles_raw = await database.DATABASE_CONN.select_guild_roles(guild.id)
@@ -155,7 +172,16 @@ class Streak(commands.Cog):
             owned_roles[guild] = owned_role
         return owned_roles
 
-    async def get_deserved_roles(self, used_guilds, current_streak_length):
+    async def get_deserved_roles(self, used_guilds: list, current_streak_length):
+        """Gets the desrved roles of the member in each guild based on current streak length
+
+        Args:
+            used_guilds (list): The guilds which both the user and bot are in, which have roles turned on
+            current_streak_length: The current length of the users streak
+
+        Returns:
+            _type_: _description_
+        """
         deserved_roles = {}
         for guild in used_guilds:
             guild_streak_roles = await database.DATABASE_CONN.select_guild_roles(guild.id)

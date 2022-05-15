@@ -99,7 +99,11 @@ class Database:
         return self.conn.execute(query).fetchone()
 
     async def insert_guild_data(self, guild_id: int):
-        """write this"""
+        """Inserts data into the guild table
+
+        Args:
+            guild_id (int): The id of the guild which is subject to the data being inserted
+        """
         query = self.guildTab.insert().values(
             guild_id=guild_id,
             streak_channel_limit=0,
@@ -109,6 +113,15 @@ class Database:
         self.conn.execute(query)
 
     async def update_guild_data(self, guild_id: int, data: dict):
+        """Updates data in the guild table
+
+        Args:
+            guild_id (int): The id of the guild which is subject to the data being updated
+            data (dict): The data being inserted
+
+        Returns:
+            Bool: Returns true of data is succsessfuly updated
+        """
         query = update(self.guildTab).where(
             self.guildTab.c.guild_id == guild_id).values(data)
         self.conn.execute(query)
