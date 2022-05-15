@@ -21,34 +21,23 @@ class Streak(commands.Cog):
         Args:
             declared_streak_length (utils.TimeConverter, optional): A series of time keys and coefficents (1d 2m 3h). Defaults to 0.0.
         """
-        # Decode the arguments to get current starting date
         if declared_streak_length is False:
             return
         starting_date = datetime.utcnow() - timedelta(seconds=int(declared_streak_length))
-
-        # Previous streak data
         userdata = await database.DATABASE_CONN.seclect_user_data(ctx.author.id)
         previous = True if userdata else False
-
-        # Get user data on current streak
         if previous:
             relapse_data = await database.DATABASE_CONN.select_relapse_data(ctx.author.id)
             most_recent_relapse = relapse_data[0][2]
             previous_streak_length = starting_date - most_recent_relapse
             previous_streak_length = await self.get_streak_string(previous_streak_length.seconds)
-
-        # update database
         await self.db_streak_update(
             ctx=ctx,
             previous=previous,
             starting_date=starting_date)
-
-        # update roles
         current_streak_length = datetime.utcnow() - starting_date
         current_streak_length = await self.get_streak_string(current_streak_length.seconds)
         await self.update_role(ctx, current_streak_length[0])
-
-        # post message
         if previous:
             await ctx.send(f"Your previous streak was {previous_streak_length[0]} days, and {previous_streak_length[1]} hours. \n Dont be dejected")
         else:
@@ -59,23 +48,16 @@ class Streak(commands.Cog):
     @commands.cooldown(3, 900, commands.BucketType.user)
     async def update(self, ctx):
         """Updated the users roles and posts their current streak length"""
-        # Previous streak data
         userdata = await database.DATABASE_CONN.seclect_user_data(ctx.author.id)
         previous = True if userdata else False
-
-        # If they dont have a previous streak
         if not previous:
             await ctx.send("You dont appear to have any previous streaks on record. Please do `!relapse` to start your first one!")
             return
-
-        # get streak str and post message
         previous_streak_data = await database.DATABASE_CONN.select_relapse_data(ctx.author.id)
         most_recent_relapse = previous_streak_data[0][2]
         current_streak_length = datetime.utcnow() - most_recent_relapse
         streak_string = await self.get_streak_string(current_streak_length.total_seconds())
         await ctx.send(f"Your streak is {streak_string[0]} days, and {streak_string[1]} hours long")
-
-        # update roles
         await self.update_role(ctx, streak_string[0])
 
     async def db_streak_update(self, ctx, previous: bool, starting_date):
@@ -89,8 +71,6 @@ class Streak(commands.Cog):
             await database.DATABASE_CONN.update_user_data(ctx.author.id)
         else:
             await database.DATABASE_CONN.insert_user_data(ctx.author.id)
-
-        # if previous streak insert relapse data
         await database.DATABASE_CONN.insert_relapse(user_id=ctx.author.id, relapse_utc=starting_date)
 
     async def get_streak_string(self, seconds: int):
@@ -106,18 +86,6 @@ class Streak(commands.Cog):
         hours = (seconds % 86400) // 3600
         return [int(days), int(hours)]
 
-    async def calc_streak_length(self, previous_start_date, current_start_date):
-        """Returns streak length based on two imputs
-
-        Args:
-            previous_start_date (timedate): The previous relapse date
-            current_start_date (timedate): The current start date
-
-        Returns:
-            timedelta: The current streak length
-        """
-        return (current_start_date - previous_start_date).total_seconds()
-
     async def update_role(self, ctx, current_streak_length):
         """Updates the users roles based on current streak length
 
@@ -125,89 +93,91 @@ class Streak(commands.Cog):
             current_streak_length (time delta): The total streak length in seconds
         """
 
-        # loop through servers the user is in --> list of all servers user is in called used_servers
-        gross_servers = self.client.guilds
-        used_servers = []
-        for server in gross_servers:
-            for member in server.members:
-                if ctx.author == member:
-                    used_servers.append(server)
+        used_guilds = await self.get_used_guilds(author=ctx.author, guild=ctx.guild)
+        owned_roles = await self.get_owned_roles(author=ctx.author, used_guilds=used_guilds)
+        deserved_roles = await self.get_deserved_roles(used_guilds=used_guilds, current_streak_length=current_streak_length)
 
-        # loop through used_servers to find the current role they have (if any) --> dict where key==guild value== role called owned_role
-
-        owned_roles = {}
-        for server in used_servers:
-
-            guild_roles = await database.DATABASE_CONN.select_guild_roles(server.id)
-            roles = []
-            for role in guild_roles:
-                roles.append(role[3])
-
-            member = await server.fetch_member(ctx.author.id)
-            owned_role = await self.get_owned_streak_roles(member, roles)
-            owned_roles[server] = owned_role
-
-        # loop through database to find the correct role for the user, for servers he is is in --> dict where key == guild value == role called reserved_role
-
-        deserved_roles = {}
-        for server in used_servers:
-            guild_roles = await database.DATABASE_CONN.select_guild_roles(server.id)
-            deserved_role = await self.get_deserved_streak_role(current_streak_length, guild_roles)
-            deserved_roles[server] = deserved_role
-
-        # for every server in used servers
-        for server in used_servers:
-
-            # if deserved = owned return
-            if owned_roles[server] == deserved_roles[server]:
+        for guild in used_guilds:
+            if owned_roles[guild] == deserved_roles[guild]:
                 continue
 
-            # get author member object for server
-            guild_member = await server.fetch_member(ctx.author.id)
+            guild_member = await guild.fetch_member(ctx.author.id)
+            if owned_roles[guild] != None:
+                await guild_member.remove_roles(owned_roles[guild], reason="updating streak roles")
+            await guild_member.add_roles(deserved_roles[guild], reason="updating streak roles")
 
-            # if they have any role
-            if owned_roles[server] != None:
-
-                # remove role
-                await guild_member.remove_roles(owned_roles[server], reason="updating streak roles")
-
-            # add desrved role
-            await guild_member.add_roles(deserved_role[server], reason="updating streak roles")
-
-    async def get_owned_streak_roles(self, member: discord.Member, guild_roles):
-        """Returns the roles the user currently has 
+    async def get_used_guilds(self, author):
+        """Gets the guilds of which the user is part, and has roles activated
 
         Args:
-            member (discord.Member): The user of the server being checked
-            guild_roles (list): A list of server roles
+            author: The user who the guilds are being checked against
 
         Returns:
-            discord.Role: The role the user has
+            list: The list of guilds which meet the conditions
         """
-        for role in member.roles:
-            if role.id in guild_roles:
-                return role
-        return None
+        gross_guilds = self.client.guilds
+        used_guilds = []
+        for guild in gross_guilds:
+            guild_data = await database.DATABASE_CONN.select_guild_data(guild.id)
+            for member in guild.members:
+                if author.id == member.id:
+                    if guild_data[3] == 1:
+                        used_guilds.append(guild)
+        return used_guilds
 
-    async def get_deserved_streak_role(self, days, guild_roles):
-        """Returns the role the user deserves
+    async def get_owned_roles(self, author, used_guilds: list):
+        """Gets the owned roles of the member in each guild
 
         Args:
-            days (timedelta): The current streak length
-            guild_roles (list): List of the streak roles the guild has
+            author: The user who the guilds are being checked against
+            used_guilds (list): The guilds which both the user and bot are in, which have roles turned on
 
         Returns:
-            discord.Role: The discord role the user deserves based on their streak length
+            dict: Dictionary the used servers, and the streak role the user has
         """
-        role = []
-        for role in guild_roles:
-            if days < role[2]:
-                roles.append(int(role[2]))
-        if len(role) > 0:
-            min_val = min(role)
-            min_val_index = role.index(min_val)
-            return role[min_val_index]
-        return None
+        owned_roles = {}
+        for guild in used_guilds:
+            guild_roles_raw = await database.DATABASE_CONN.select_guild_roles(guild.id)
+            guild_roles = []
+            for role in guild_roles_raw:
+                guild_roles.append(role[3])
+            member = await guild.fetch_member(author.id)
+            owned_role = None
+            for role in member.roles:
+                if role.id in guild_roles:
+                    owned_role = role
+                    break
+            if owned_role is not None:
+                owned_role = guild.get_role(owned_role)
+            owned_roles[guild] = owned_role
+        return owned_roles
+
+    async def get_deserved_roles(self, used_guilds: list, current_streak_length):
+        """Gets the desrved roles of the member in each guild based on current streak length
+
+        Args:
+            used_guilds (list): The guilds which both the user and bot are in, which have roles turned on
+            current_streak_length: The current length of the users streak
+
+        Returns:
+            _type_: _description_
+        """
+        deserved_roles = {}
+        for guild in used_guilds:
+            guild_streak_roles = await database.DATABASE_CONN.select_guild_roles(guild.id)
+            deserved_role = None
+            potential_roles = []
+            for role in guild_streak_roles:
+                if current_streak_length < role[2]:
+                    potential_roles.append(int(role[2]))
+            if len(potential_roles) > 0:
+                min_val = min(potential_roles)
+                min_val_index = potential_roles.index(min_val)
+                deserved_role = guild_streak_roles[min_val_index][3]
+            if deserved_role is not None:
+                deserved_role = guild.get_role(deserved_role)
+            deserved_roles[guild] = deserved_role
+        return deserved_roles
 
 
 def setup(client):

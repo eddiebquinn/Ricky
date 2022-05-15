@@ -98,7 +98,37 @@ class Database:
         query = self.guildTab.select().where(self.guildTab.c.guild_id == guild_id)
         return self.conn.execute(query).fetchone()
 
+    async def insert_guild_data(self, guild_id: int):
+        """Inserts data into the guild table
+
+        Args:
+            guild_id (int): The id of the guild which is subject to the data being inserted
+        """
+        query = self.guildTab.insert().values(
+            guild_id=guild_id,
+            streak_channel_limit=0,
+            roles_enabled=0,
+            porn_filter_enabled=0
+        )
+        self.conn.execute(query)
+
+    async def update_guild_data(self, guild_id: int, data: dict):
+        """Updates data in the guild table
+
+        Args:
+            guild_id (int): The id of the guild which is subject to the data being updated
+            data (dict): The data being inserted
+
+        Returns:
+            Bool: Returns true of data is succsessfuly updated
+        """
+        query = update(self.guildTab).where(
+            self.guildTab.c.guild_id == guild_id).values(data)
+        self.conn.execute(query)
+        return True
+
     # Relapse Tab
+
     async def select_relapse_data(self, user_id: int):
         """Returns a list of users previous relapses
 
@@ -159,6 +189,20 @@ class Database:
         query = self.roleConfigTab.select().where(
             self.roleConfigTab.c.guild_id == guild_id)
         return self.conn.execute(query).fetchall()
+
+    async def insert_guild_roles(self, guild_id, day_reach, role_id):
+        """create this before merge"""
+        query = self.roleConfigTab.insert().values(
+            guild_id=guild_id,
+            day_reach=day_reach,
+            role_id=role_id)
+        self.conn.execute(query)
+
+    async def delete_guild_roles(self, id: int):
+        """deletes row with a specic role id"""
+        query = self.roleConfigTab.delete().where(
+            self.roleConfigTab.c.role_config_id == id)
+        self.conn.execute(query)
 
 
 def database_init(echo=True):

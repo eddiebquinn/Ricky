@@ -27,7 +27,8 @@ class Development(commands.Cog):
     @commands.command(name="ping")
     async def ping(self, ctx):
         """Check the latency of the bot"""
-        await ctx.send(f"pong! Latency is {self.client.latency * 1000}ms")
+        latency = round((self.client.latency * 1000), 2)
+        await ctx.send(f"pong! Latency is {latency}ms")
 
 
 def setup(client):
