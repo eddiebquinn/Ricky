@@ -1,4 +1,5 @@
-import utils
+import utils.utils as utils
+from utils.logger import LOGGER
 import database
 import discord_conn
 import discord
@@ -9,7 +10,7 @@ from datetime import datetime, timedelta
 class Streak(commands.Cog):
 
     def __init__(self, client):
-        print(f"initilised {__class__.__cog_name__} cog")
+        LOGGER.warning(f"initilised {__class__.__cog_name__} cog")
         self.client = client
 
     @commands.command(name="relapse")

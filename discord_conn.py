@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
-import utils
+import utils.utils as utils
+import utils.logger as logger
 import os
 
 intents = discord.Intents.all()
@@ -16,7 +17,7 @@ async def on_ready():
     """Waits until the client’s internal cache is all ready, and then loads cogs"""
     await client.wait_until_ready()
     await cogs_load()
-    print("Bot is active")
+    logger.LOGGER.warning("Bot is active")
 
 
 async def cogs_load():

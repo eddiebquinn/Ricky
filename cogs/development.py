@@ -1,10 +1,11 @@
 from discord.ext import commands
-import utils
+import utils.utils as utils
+from utils.logger import LOGGER
 
 
 class Development(commands.Cog):
     def __init__(self, client):
-        print(f"initilised {__class__.__cog_name__} cog")
+        LOGGER.warning(f"initilised {__class__.__cog_name__} cog")
         self.client = client
 
     @commands.command(name="cog", aliases=["cogs"])

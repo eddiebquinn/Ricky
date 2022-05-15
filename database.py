@@ -1,4 +1,4 @@
-import utils
+import utils.utils as utils
 from sqlalchemy import create_engine, MetaData, Table, Column, ForeignKey, update, desc
 from sqlalchemy.dialects.mysql import BIGINT, INTEGER, TEXT, DATETIME, TINYINT, VARCHAR
 from datetime import datetime

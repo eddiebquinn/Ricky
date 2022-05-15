@@ -2,11 +2,12 @@ import discord
 from discord.ext import commands
 from discord.ext.commands import Cog
 import database
+from utils.logger import LOGGER
 
 
 class Setup(commands.Cog):
     def __init__(self, client):
-        print(f"initilised {__class__.__cog_name__} cog")
+        LOGGER.warning(f"initilised {__class__.__cog_name__} cog")
         self.client = client
         self.bot_name = self.client.user.name
 
