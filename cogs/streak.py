@@ -113,7 +113,7 @@ class Streak(commands.Cog):
             current_streak_length (time delta): The total streak length in seconds
         """
 
-        used_guilds = await self.get_used_guilds(author=ctx.author)
+        used_guilds = await self.get_used_guilds(author=ctx.author, guild=ctx.guild)
         owned_roles = await self.get_owned_roles(author=ctx.author, used_guilds=used_guilds)
         deserved_roles = await self.get_deserved_roles(used_guilds=used_guilds, current_streak_length=current_streak_length)
 
@@ -126,13 +126,15 @@ class Streak(commands.Cog):
                 await guild_member.remove_roles(owned_roles[guild], reason="updating streak roles")
             await guild_member.add_roles(deserved_roles[guild], reason="updating streak roles")
 
-    async def get_used_guilds(self, author):
+    async def get_used_guilds(self, author, guild):
         gross_guilds = self.client.guilds
         used_guilds = []
         for guild in gross_guilds:
+            guild_data = await database.DATABASE_CONN.select_guild_data(guild.id)
             for member in guild.members:
                 if author.id == member.id:
-                    used_guilds.append(guild)
+                    if guild_data[3] == 1:
+                        used_guilds.append(guild)
         return used_guilds
 
     async def get_owned_roles(self, author, used_guilds):
