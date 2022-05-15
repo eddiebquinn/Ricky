@@ -21,34 +21,23 @@ class Streak(commands.Cog):
         Args:
             declared_streak_length (utils.TimeConverter, optional): A series of time keys and coefficents (1d 2m 3h). Defaults to 0.0.
         """
-        # Decode the arguments to get current starting date
         if declared_streak_length is False:
             return
         starting_date = datetime.utcnow() - timedelta(seconds=int(declared_streak_length))
-
-        # Previous streak data
         userdata = await database.DATABASE_CONN.seclect_user_data(ctx.author.id)
         previous = True if userdata else False
-
-        # Get user data on current streak
         if previous:
             relapse_data = await database.DATABASE_CONN.select_relapse_data(ctx.author.id)
             most_recent_relapse = relapse_data[0][2]
             previous_streak_length = starting_date - most_recent_relapse
             previous_streak_length = await self.get_streak_string(previous_streak_length.seconds)
-
-        # update database
         await self.db_streak_update(
             ctx=ctx,
             previous=previous,
             starting_date=starting_date)
-
-        # update roles
         current_streak_length = datetime.utcnow() - starting_date
         current_streak_length = await self.get_streak_string(current_streak_length.seconds)
         await self.update_role(ctx, current_streak_length[0])
-
-        # post message
         if previous:
             await ctx.send(f"Your previous streak was {previous_streak_length[0]} days, and {previous_streak_length[1]} hours. \n Dont be dejected")
         else:
@@ -59,23 +48,16 @@ class Streak(commands.Cog):
     @commands.cooldown(3, 900, commands.BucketType.user)
     async def update(self, ctx):
         """Updated the users roles and posts their current streak length"""
-        # Previous streak data
         userdata = await database.DATABASE_CONN.seclect_user_data(ctx.author.id)
         previous = True if userdata else False
-
-        # If they dont have a previous streak
         if not previous:
             await ctx.send("You dont appear to have any previous streaks on record. Please do `!relapse` to start your first one!")
             return
-
-        # get streak str and post message
         previous_streak_data = await database.DATABASE_CONN.select_relapse_data(ctx.author.id)
         most_recent_relapse = previous_streak_data[0][2]
         current_streak_length = datetime.utcnow() - most_recent_relapse
         streak_string = await self.get_streak_string(current_streak_length.total_seconds())
         await ctx.send(f"Your streak is {streak_string[0]} days, and {streak_string[1]} hours long")
-
-        # update roles
         await self.update_role(ctx, streak_string[0])
 
     async def db_streak_update(self, ctx, previous: bool, starting_date):
@@ -89,8 +71,6 @@ class Streak(commands.Cog):
             await database.DATABASE_CONN.update_user_data(ctx.author.id)
         else:
             await database.DATABASE_CONN.insert_user_data(ctx.author.id)
-
-        # if previous streak insert relapse data
         await database.DATABASE_CONN.insert_relapse(user_id=ctx.author.id, relapse_utc=starting_date)
 
     async def get_streak_string(self, seconds: int):
