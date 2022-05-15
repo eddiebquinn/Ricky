@@ -93,7 +93,7 @@ class Streak(commands.Cog):
             current_streak_length (time delta): The total streak length in seconds
         """
 
-        used_guilds = await self.get_used_guilds(author=ctx.author, guild=ctx.guild)
+        used_guilds = await self.get_used_guilds(author=ctx.author)
         owned_roles = await self.get_owned_roles(author=ctx.author, used_guilds=used_guilds)
         deserved_roles = await self.get_deserved_roles(used_guilds=used_guilds, current_streak_length=current_streak_length)
 
