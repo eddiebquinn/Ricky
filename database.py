@@ -3,6 +3,7 @@ import utils.logger as logger
 from sqlalchemy import create_engine, MetaData, Table, Column, ForeignKey, update, desc
 from sqlalchemy.dialects.mysql import BIGINT, INTEGER, TEXT, DATETIME, TINYINT, VARCHAR
 from datetime import datetime
+import pandas as pd
 
 
 class Database:
@@ -97,7 +98,10 @@ class Database:
         """
         await self.do_log("SELECT", "guild", {"guild_id": guild_id})
         query = self.guildTab.select().where(self.guildTab.c.guild_id == guild_id)
-        return self.conn.execute(query).fetchone()
+        data = pd.read_sql_query(sql=query, con=self.conn)
+        print(data)
+        # return self.conn.execute(query).fetchone()
+        return data
 
     async def insert_guild_data(self, guild_id: int):
         """Inserts data into the guild table
@@ -146,7 +150,9 @@ class Database:
         await self.do_log("SELECT", "relapse_data", {"user_id": user_id})
         query = self.relapseTab.select().where(self.relapseTab.c.discord_user_id ==
                                                user_id).order_by(desc(self.relapseTab.c.relapse_utc))
-        return self.conn.execute(query).fetchall()
+        data = pd.read_sql_query(sql=query, con=self.conn)
+        # return self.conn.execute(query).fetchall()
+        return data
 
     async def insert_relapse(self, user_id: int, relapse_utc=datetime.utcnow(), previous_streak_invalid=False):
         """Inserts relapse into relapse table
@@ -179,7 +185,9 @@ class Database:
         """
         await self.do_log("SELECT", "user", {"user_id": user_id})
         query = self.userTab.select().where(self.userTab.c.discord_user_id == user_id)
-        return self.conn.execute(query).fetchone()
+        data = pd.read_sql_query(sql=query, con=self.conn)
+        # return self.conn.execute(query).fetchone()
+        return data
 
     async def insert_user_data(self, user_id: int):
         """Inserts a new user into the databse
@@ -217,7 +225,9 @@ class Database:
         await self.do_log("SELECT", "role_config", {"guild_id": guild_id})
         query = self.roleConfigTab.select().where(
             self.roleConfigTab.c.guild_id == guild_id)
-        return self.conn.execute(query).fetchall()
+        data = pd.read_sql_query(sql=query, con=self.conn)
+        # return self.conn.execute(query).fetchall()
+        return data
 
     async def insert_guild_roles(self, guild_id, day_reach, role_id):
         """create this before merge"""
