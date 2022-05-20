@@ -34,6 +34,7 @@ class Setup(commands.Cog):
     @commands.command(name="guild_info", aliases=["server_info"])
     @commands.cooldown(3, 60, commands.BucketType.user)
     async def guild_info(self, ctx):
+        """Sends general guild information and current bot settings"""
         guild_info = await database.DATABASE_CONN.select_guild_data(guild_id=ctx.guild.id)
 
         embed = discord.Embed(

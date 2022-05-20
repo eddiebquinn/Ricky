@@ -73,7 +73,14 @@ class Database:
         self.meta.create_all(self.engine)
         self.logger.warning("Initilised database")
 
-    async def do_log(self, query_type, table, params: dict):
+    async def do_log(self, query_type: str, table: str, params: dict):
+        """Creates an IFO log with standard format
+
+        Args:
+            query_type (str): The type of query
+            table (str): That table the query was performed on
+            params (str): Relevant paramaters to the query 
+        """
         msg = f"{query_type.upper()} to {table.lower()} - {str(params)}"
         self.logger.info(msg)
 

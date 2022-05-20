@@ -51,6 +51,7 @@ async def is_in_streak_channel(ctx):
 
 
 async def is_developer(ctx):
+    """Contextually returns if the message author is a developer or not"""
     userdata = await database.DATABASE_CONN.seclect_user_data(ctx.author.id)
     return userdata[2] == 1
 

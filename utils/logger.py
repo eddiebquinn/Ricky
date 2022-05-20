@@ -4,6 +4,7 @@ global LOGGER
 
 
 def logger_init():
+    """Initalises the logger"""
     global LOGGER
     log_format = "%(levelname)s %(asctime)s - %(message)s"
 
