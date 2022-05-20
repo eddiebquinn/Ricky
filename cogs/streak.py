@@ -31,13 +31,13 @@ class Streak(commands.Cog):
             relapse_data = await database.DATABASE_CONN.select_relapse_data(ctx.author.id)
             most_recent_relapse = relapse_data[0][2]
             previous_streak_length = starting_date - most_recent_relapse
-            previous_streak_length = await self.get_streak_string(previous_streak_length.seconds)
+            previous_streak_length = await self.get_streak_string(previous_streak_length.total_seconds())
         await self.db_streak_update(
             ctx=ctx,
             previous=previous,
             starting_date=starting_date)
         current_streak_length = datetime.utcnow() - starting_date
-        current_streak_length = await self.get_streak_string(current_streak_length.seconds)
+        current_streak_length = await self.get_streak_string(current_streak_length.total_seconds())
         await self.update_role(ctx, current_streak_length[0])
         if previous:
             await ctx.send(f"Your previous streak was {previous_streak_length[0]} days, and {previous_streak_length[1]} hours. \n Dont be dejected")
