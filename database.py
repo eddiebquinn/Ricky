@@ -1,4 +1,5 @@
 import utils.utils as utils
+import utils.logger as logger
 from sqlalchemy import create_engine, MetaData, Table, Column, ForeignKey, update, desc
 from sqlalchemy.dialects.mysql import BIGINT, INTEGER, TEXT, DATETIME, TINYINT, VARCHAR
 from datetime import datetime
@@ -13,6 +14,7 @@ class Database:
             config (dict): Part of the settings.JSON file
             echo (bool, optional): Weather the SQLalchemy should be verbose. Defaults to True.
         """
+        self.logger = logger.LOGGER
 
         self.pymsql_string = f"mysql+pymysql://{config['username']}:{config['password']}@{config['host']}/{config['database']}"
         self.engine = create_engine(self.pymsql_string, echo=echo)
@@ -69,24 +71,14 @@ class Database:
         )
 
         self.meta.create_all(self.engine)
+        self.logger.warning("Initilised database")
 
-    # Relapse Tab
-    async def insert_relapse(self, user_id: int, relapse_utc=datetime.utcnow(), previous_streak_invalid=False):
-        """Inserts relapse into relapse table
-
-        Args:
-            user_id (int): The discord user id
-            relapse_utc (_type_, optional): The utc of the relaspe.
-            previous_streak_invalid (bool, optional): Weather the previous streak is valid.
-        """
-        query = self.relapseTab.insert().values(
-            discord_user_id=user_id,
-            relapse_utc=relapse_utc,
-            previous_streak_invalid=previous_streak_invalid
-        )
-        self.conn.execute(query)
+    async def do_log(self, query_type, table, params: dict):
+        msg = f"{query_type.upper()} to {table.lower()} - {str(params)}"
+        self.logger.info(msg)
 
     # Guild Tab
+
     async def select_guild_data(self, guild_id: int):
         """Returns the data of the specified guild
 
@@ -96,6 +88,7 @@ class Database:
         Returns:
             tuple: The data of the guild requested
         """
+        await self.do_log("SELECT", "guild", {"guild_id": guild_id})
         query = self.guildTab.select().where(self.guildTab.c.guild_id == guild_id)
         return self.conn.execute(query).fetchone()
 
@@ -105,6 +98,7 @@ class Database:
         Args:
             guild_id (int): The id of the guild which is subject to the data being inserted
         """
+        await self.do_log("INSERT", "guild", {"guild_id": guild_id})
         query = self.guildTab.insert().values(
             guild_id=guild_id,
             streak_channel_limit=0,
@@ -123,6 +117,9 @@ class Database:
         Returns:
             Bool: Returns true of data is succsessfuly updated
         """
+        log_dict = data
+        log_dict["guild_id"] = guild_id
+        await self.do_log("UPDATE", "guild", log_dict)
         query = update(self.guildTab).where(
             self.guildTab.c.guild_id == guild_id).values(data)
         self.conn.execute(query)
@@ -139,9 +136,29 @@ class Database:
         Returns:
             list: The previous relapses of that user
         """
+        await self.do_log("SELECT", "relapse_data", {"user_id": user_id})
         query = self.relapseTab.select().where(self.relapseTab.c.discord_user_id ==
                                                user_id).order_by(desc(self.relapseTab.c.relapse_utc))
         return self.conn.execute(query).fetchall()
+
+    async def insert_relapse(self, user_id: int, relapse_utc=datetime.utcnow(), previous_streak_invalid=False):
+        """Inserts relapse into relapse table
+
+        Args:
+            user_id (int): The discord user id
+            relapse_utc (_type_, optional): The utc of the relaspe.
+            previous_streak_invalid (bool, optional): Weather the previous streak is valid.
+        """
+        await self.do_log("INSERT", "relapse_data", {
+            "user_id": user_id,
+            "relapse_utc": relapse_utc,
+            "previous_streak_invalid": previous_streak_invalid})
+        query = self.relapseTab.insert().values(
+            discord_user_id=user_id,
+            relapse_utc=relapse_utc,
+            previous_streak_invalid=previous_streak_invalid
+        )
+        self.conn.execute(query)
 
     # Userdata Tab
     async def seclect_user_data(self, user_id: int):
@@ -153,6 +170,7 @@ class Database:
         Returns:
             tuple: The user data
         """
+        await self.do_log("SELECT", "user", {"user_id": user_id})
         query = self.userTab.select().where(self.userTab.c.discord_user_id == user_id)
         return self.conn.execute(query).fetchone()
 
@@ -162,6 +180,7 @@ class Database:
         Args:
             user_id (int): The id of the user being recorded
         """
+        await self.do_log("INSERT", "user", {"user_id": user_id, "last_update": datetime.utcnow()})
         query = self.userTab.insert().values(
             discord_user_id=user_id,
             last_update=datetime.utcnow())
@@ -173,6 +192,7 @@ class Database:
         Args:
             user_id (int): The user whos data is to be updated
         """
+        await self.do_log("UPDATE", "user", {"user_id": user_id, "last_update": datetime.utcnow()})
         query = update(self.userTab).where(self.userTab.c.discord_user_id == user_id).values(
             last_update=datetime.utcnow())
         self.conn.execute(query)
@@ -187,12 +207,14 @@ class Database:
         Returns:
             list: list of roles assoacited with the given server
         """
+        await self.do_log("SELECT", "role_config", {"guild_id": guild_id})
         query = self.roleConfigTab.select().where(
             self.roleConfigTab.c.guild_id == guild_id)
         return self.conn.execute(query).fetchall()
 
     async def insert_guild_roles(self, guild_id, day_reach, role_id):
         """create this before merge"""
+        await self.do_log("INSERT", "role_config", {"guild_id": guild_id, "day_reach": day_reach, "role_id": role_id})
         query = self.roleConfigTab.insert().values(
             guild_id=guild_id,
             day_reach=day_reach,
@@ -201,12 +223,13 @@ class Database:
 
     async def delete_guild_roles(self, id: int):
         """deletes row with a specic role id"""
+        await self.do_log("DELETE", "role_config", {"role_config_id": id})
         query = self.roleConfigTab.delete().where(
             self.roleConfigTab.c.role_config_id == id)
         self.conn.execute(query)
 
 
-def database_init(echo=True):
+def database_init(echo=False):
     """Initalises the databse
 
     Args:
