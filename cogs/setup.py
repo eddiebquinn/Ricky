@@ -9,7 +9,8 @@ class Setup(commands.Cog):
     def __init__(self, client):
         LOGGER.warning(f"initilised {__class__.__cog_name__} cog")
         self.client = client
-        self.bot_name = self.client.user.name
+        self.user = self.client.user
+        self.link = "https://github.com/eddiebquinn/Ricky/wiki/Guild-configuration-for-admins-moderators"
 
         self.streak_roles = (
             ((130, 81, 245), "3rd year +", 1460),
@@ -27,9 +28,41 @@ class Setup(commands.Cog):
     @Cog.listener()
     async def on_guild_join(self, guild):
         """Listener that activates when the bot is added to a new guild and adds guild to database"""
-        link = "https://github.com/eddiebquinn/Ricky/wiki/Guild-configuration-for-admins-moderators"
-        await ctx.send(f"Hi, im {self.bot_name}, please check out {link} for instructions on how to configure me")
+        await ctx.send(f"Hi, im {self.user.name}, please check out {self.link} for instructions on how to configure me")
         await database.DATABASE_CONN.insert_guild_data(guild.id)
+
+    @commands.command(name="guild_info", aliases=["server_info"])
+    @commands.cooldown(3, 60, commands.BucketType.user)
+    async def guild_info(self, ctx):
+        """Sends general guild information and current bot settings"""
+        guild_info = await database.DATABASE_CONN.select_guild_data(guild_id=ctx.guild.id)
+
+        embed = discord.Embed(
+            title="Guild Info",
+            url=self.link,
+            description="General guild information and current bot settings",
+            color=0x02f8ff)
+        embed.set_author(
+            name=self.user.name,
+            url="https://github.com/eddiebquinn/Ricky",
+            icon_url=self.user.avatar_url)
+        embed.set_thumbnail(url=ctx.guild.icon_url)
+        embed.add_field(name="Guild name", value=ctx.guild.name, inline=False)
+        embed.add_field(
+            name="Owner", value=ctx.guild.owner.mention, inline=False)
+        embed.add_field(name="Population",
+                        value=ctx.guild.member_count, inline=False)
+        embed.add_field(name="Creation date",
+                        value=ctx.guild.created_at.date(), inline=False)
+        embed.add_field(name="Streak Channel Limit",
+                        value=guild_info[1], inline=False)
+        embed.add_field(name="Streak Channel",
+                        value=guild_info[2], inline=False)
+        embed.add_field(name="Roles enabled",
+                        value=guild_info[3], inline=False)
+        embed.set_footer(
+            text="Ricky Bot is an open source addiction recovery tool, coded in Python. To get involved visit the github")
+        await ctx.send(embed=embed)
 
     @commands.command(name="setup_guild")
     @commands.has_guild_permissions(manage_guild=True)

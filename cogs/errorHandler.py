@@ -17,6 +17,9 @@ class ErrorHandler(commands.Cog):
             return
 
         error = getattr(error, 'original', error)
+
+        if isinstance(error, commands.CommandNotFound):
+            return
         if isinstance(error, commands.CommandOnCooldown):
             time = int(error.retry_after) // 60
             await ctx.send(content=f'This command is on cooldown. Please wait {time}m', delete_after=5)
