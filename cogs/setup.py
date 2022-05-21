@@ -55,11 +55,11 @@ class Setup(commands.Cog):
         embed.add_field(name="Creation date",
                         value=ctx.guild.created_at.date(), inline=False)
         embed.add_field(name="Streak Channel Limit",
-                        value=guild_info[1], inline=False)
+                        value=guild_info["streak_channel_limit"], inline=False)
         embed.add_field(name="Streak Channel",
-                        value=guild_info[2], inline=False)
+                        value=guild_info["strak_roles_channel"], inline=False)
         embed.add_field(name="Roles enabled",
-                        value=guild_info[3], inline=False)
+                        value=guild_info["roles_enabled"], inline=False)
         embed.set_footer(
             text="Ricky Bot is an open source addiction recovery tool, coded in Python. To get involved visit the github")
         await ctx.send(embed=embed)
@@ -71,7 +71,7 @@ class Setup(commands.Cog):
         """Adds the guild to the database, in case the bot failed to do so automatically"""
         guild_data = await database.DATABASE_CONN.select_guild_data(ctx.guild.id)
         if guild_data is not None:
-            if len(guild_data) > 0:
+            if ctx.guild.id in guild_data.values:
                 await ctx.send(f"Data for {ctx.guild.name}  is already in the database")
                 return
         await database.DATABASE_CONN.insert_guild_data(ctx.guild.id)
@@ -94,8 +94,9 @@ class Setup(commands.Cog):
             return
 
         data = await database.DATABASE_CONN.select_guild_data(ctx.guild.id)
-        column_map = {"streak_channel_limit": 1, "roles_enabled": 3}
-        value = data[column_map[settings[raw_setting]]]
+        # column_map = {"streak_channel_limit": 1, "roles_enabled": 3}
+        # value = data[column_map[settings[raw_setting]]]
+        value = data[settings[raw_setting]]
         if value == 0:
             new_val = 1
         if value == 1:
@@ -155,7 +156,7 @@ class Setup(commands.Cog):
         if response is True:
             await ctx.send("Role creation succsessful")
 
-    async def do_overide(self, guild: discord.Guild, roles: list):
+    async def do_overide(self, guild: discord.Guild, roles):
         """Deleted old roles and associated database entries
 
         Args:
@@ -163,12 +164,12 @@ class Setup(commands.Cog):
             roles (list): The list of roles to be reset
         """
         for role in roles:
-            guild_role = guild.get_role(role[3])
+            guild_role = guild.get_role(role["role_id"])
             try:
                 await guild_role.delete(reason=f"Deleted by {self.bot_name} due to overide")
             except AttributeError:
                 pass
-            await database.DATABASE_CONN.delete_guild_roles(role[0])
+            await database.DATABASE_CONN.delete_guild_roles(role["role_config_id"])
 
     async def create_roles(self, guild: discord.Guild, hoist: bool = False):
         """Creates the standard discord recovery roles

@@ -26,10 +26,10 @@ class Streak(commands.Cog):
             return
         starting_date = datetime.utcnow() - timedelta(seconds=int(declared_streak_length))
         userdata = await database.DATABASE_CONN.seclect_user_data(ctx.author.id)
-        previous = True if userdata else False
+        previous = True if len(userdata) > 0 else False
         if previous:
             relapse_data = await database.DATABASE_CONN.select_relapse_data(ctx.author.id)
-            most_recent_relapse = relapse_data[0][2]
+            most_recent_relapse = relapse_data.iloc[0]["relapse_utc"]
             previous_streak_length = starting_date - most_recent_relapse
             previous_streak_length = await self.get_streak_string(previous_streak_length.total_seconds())
         await self.db_streak_update(
@@ -50,12 +50,12 @@ class Streak(commands.Cog):
     async def update(self, ctx):
         """Updated the users roles and posts their current streak length"""
         userdata = await database.DATABASE_CONN.seclect_user_data(ctx.author.id)
-        previous = True if userdata else False
+        previous = True if len(userdata) > 0 else False
         if not previous:
             await ctx.send("You dont appear to have any previous streaks on record. Please do `!relapse` to start your first one!")
             return
         previous_streak_data = await database.DATABASE_CONN.select_relapse_data(ctx.author.id)
-        most_recent_relapse = previous_streak_data[0][2]
+        most_recent_relapse = previous_streak_data.iloc[0]["relapse_utc"]
         current_streak_length = datetime.utcnow() - most_recent_relapse
         streak_string = await self.get_streak_string(current_streak_length.total_seconds())
         await ctx.send(f"Your streak is {streak_string[0]} days, and {streak_string[1]} hours long")
@@ -122,7 +122,7 @@ class Streak(commands.Cog):
             guild_data = await database.DATABASE_CONN.select_guild_data(guild.id)
             for member in guild.members:
                 if author.id == member.id:
-                    if guild_data[3] == 1:
+                    if guild_data["roles_enabled"] == 1:
                         used_guilds.append(guild)
         return used_guilds
 
@@ -141,7 +141,7 @@ class Streak(commands.Cog):
             guild_roles_raw = await database.DATABASE_CONN.select_guild_roles(guild.id)
             guild_roles = []
             for role in guild_roles_raw:
-                guild_roles.append(role[3])
+                guild_roles.append(role["role_id"])
             member = await guild.fetch_member(author.id)
             owned_role = None
             for role in member.roles:
@@ -169,12 +169,16 @@ class Streak(commands.Cog):
             deserved_role = None
             potential_roles = []
             for role in guild_streak_roles:
-                if current_streak_length < role[2]:
-                    potential_roles.append(int(role[2]))
+                if current_streak_length < role["day_reach"]:
+                    potential_roles.append(int(role["day_reach"]))
             if len(potential_roles) > 0:
+
                 min_val = min(potential_roles)
-                min_val_index = potential_roles.index(min_val)
-                deserved_role = guild_streak_roles[min_val_index][3]
+                # min_val_index = potential_roles.index(min_val)
+                #deserved_role = guild_streak_roles[min_val_index][3]
+                row = guild_streak_roles.loc[guild_streak_roles["day_reach"] == min_val]
+                deserved_role = row["role_id"]
+
             if deserved_role is not None:
                 deserved_role = guild.get_role(deserved_role)
             deserved_roles[guild] = deserved_role

@@ -99,7 +99,6 @@ class Database:
         await self.do_log("SELECT", "guild", {"guild_id": guild_id})
         query = self.guildTab.select().where(self.guildTab.c.guild_id == guild_id)
         data = pd.read_sql_query(sql=query, con=self.conn)
-        print(data)
         # return self.conn.execute(query).fetchone()
         return data
 

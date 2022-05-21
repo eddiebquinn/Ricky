@@ -45,15 +45,16 @@ async def is_in_streak_channel(ctx):
         bool: Returns True if the channel if the streak channel
     """
     guild_data = await database.DATABASE_CONN.select_guild_data(ctx.guild.id)
-    if guild_data[1] != 1:
+    print(guild_data["streak_channel_limit"])
+    if guild_data["streak_channel_limit"] != 1:
         return True
-    return guild_data[2] == ctx.channel.id
+    return guild_data["strak_roles_channel"] == ctx.channel.id
 
 
 async def is_developer(ctx):
     """Contextually returns if the message author is a developer or not"""
     userdata = await database.DATABASE_CONN.seclect_user_data(ctx.author.id)
-    return userdata[2] == 1
+    return userdata["developer"] == 1
 
 
 def extract_json():
