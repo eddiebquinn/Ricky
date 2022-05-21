@@ -27,7 +27,8 @@ class ErrorHandler(commands.Cog):
         else:
             traceback.print_exception(
                 type(error), error, error.__traceback__, file=sys.stderr)
-            LOGGER.error(f'{type(error)}, {error}, {error.__traceback__}')
+            LOGGER.error(
+                f'{type(error)}, {error}, {error.__traceback__}', exc_info=True)
 
 
 def setup(client):
