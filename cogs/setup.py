@@ -28,7 +28,16 @@ class Setup(commands.Cog):
     @Cog.listener()
     async def on_guild_join(self, guild):
         """Listener that activates when the bot is added to a new guild and adds guild to database"""
-        await ctx.send(f"Hi, im {self.user.name}, please check out {self.link} for instructions on how to configure me")
+        LOGGER.info(f"bot added to {guild.id}")
+        general_channel = False
+        for channel in guild.text_channels:
+            if channel.name.lower() == "general":
+                general_channel = channel
+        try:
+            await guild.owner.send(f"Hi, im {self.user.name}, please check out {self.link} for instructions on how to configure me")
+        except discord.errors.Forbidden:
+            if general_channel:
+                await general_channel.send(f"Hi, im {self.user.name}, please check out {self.link} for instructions on how to configure me")
         await database.DATABASE_CONN.insert_guild_data(guild.id)
 
     @commands.command(name="guild_info", aliases=["server_info"])

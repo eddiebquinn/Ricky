@@ -105,6 +105,16 @@ class Database:
         Args:
             guild_id (int): The id of the guild which is subject to the data being inserted
         """
+
+        ###
+
+        guild_data = await self.select_guild_data(guild_id)
+        if guild_data != None:
+            self.logger.info(f"Failed to insert {guild_id} - Duplicate entry")
+            return
+
+        ###
+
         await self.do_log("INSERT", "guild", {"guild_id": guild_id})
         query = self.guildTab.insert().values(
             guild_id=guild_id,
