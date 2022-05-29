@@ -15,23 +15,29 @@ class Streak(commands.Cog):
 
     @commands.command(name="relapse")
     @commands.check(utils.is_in_streak_channel)
-    @commands.cooldown(3, 300, commands.BucketType.user)
+    # @commands.cooldown(3, 300, commands.BucketType.user)
     async def relapse(self, ctx,  *, declared_streak_length: utils.TimeConverter = 0.0):
         """Updated the users roles and databse entry with most recent relaspe, and posts message
 
         Args:
             declared_streak_length (utils.TimeConverter, optional): A series of time keys and coefficents (1d 2m 3h). Defaults to 0.0.
         """
-        if declared_streak_length is False:
+        if declared_streak_length[0] is False:
             return
-        starting_date = datetime.utcnow() - timedelta(seconds=int(declared_streak_length))
+        starting_date = datetime.utcnow(
+        ) - timedelta(seconds=int(declared_streak_length[0]))
         userdata = await database.DATABASE_CONN.seclect_user_data(ctx.author.id)
         previous = True if userdata else False
         if previous:
             relapse_data = await database.DATABASE_CONN.select_relapse_data(ctx.author.id)
             most_recent_relapse = relapse_data[0][2]
-            previous_streak_length = starting_date - most_recent_relapse
-            previous_streak_length = await self.get_streak_string(previous_streak_length.total_seconds())
+        if starting_date < most_recent_relapse:
+            await ctx.send("You can't set a streak that starts before you last relapse")
+            return
+
+        return
+        previous_streak_length = starting_date - most_recent_relapse
+        previous_streak_length = await self.get_streak_string(previous_streak_length.total_seconds())
         await self.db_streak_update(
             ctx=ctx,
             previous=previous,
