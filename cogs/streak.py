@@ -34,8 +34,6 @@ class Streak(commands.Cog):
         if starting_date < most_recent_relapse:
             await ctx.send("You can't set a streak that starts before you last relapse")
             return
-
-        return
         previous_streak_length = starting_date - most_recent_relapse
         previous_streak_length = await self.get_streak_string(previous_streak_length.total_seconds())
         await self.db_streak_update(
@@ -78,6 +76,7 @@ class Streak(commands.Cog):
             await database.DATABASE_CONN.update_user_data(ctx.author.id)
         else:
             await database.DATABASE_CONN.insert_user_data(ctx.author.id)
+        # Update relapse data goes here
         await database.DATABASE_CONN.insert_relapse(user_id=ctx.author.id, relapse_utc=starting_date)
 
     async def get_streak_string(self, seconds: int):
