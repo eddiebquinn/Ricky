@@ -17,13 +17,18 @@ class TimeConverter(commands.Converter):
         Returns:
             int: The total seconds coresponding the the inserted arguments
         """
+        args = arguments.lower().split()
+        overide = False
+        if "overide" in arguments:
+            overide = True
+            args.remove("overide")
         time_dict = {"s": 1, "m": 60, "h": 3600, "d": 86400}
         if "M" in arguments:
             await ctx.send("please use 'm' istead of 'M'")
             return False
-        args = arguments.lower().split()
+
         time = 0
-        message = f"You can only use seconds, minutes, hours, and days as time keys."
+        message = f"You can only use seconds, minutes, hours, and days as time keys. \n e.g. - `1d 4h 5m` for 1d 4 hours and 5m"
         for arg in args:
             part = re.split('(\d+)', arg)
             if part[0] != "":
@@ -35,7 +40,7 @@ class TimeConverter(commands.Converter):
                 return False
             unit = time_dict[part[1]]
             time += unit * int(part[0])
-        return time
+        return (time, overide)
 
 
 async def is_in_streak_channel(ctx):
