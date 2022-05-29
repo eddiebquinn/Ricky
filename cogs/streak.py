@@ -148,8 +148,6 @@ class Streak(commands.Cog):
                 if role.id in guild_roles:
                     owned_role = role
                     break
-            if owned_role is not None:
-                owned_role = guild.get_role(owned_role)
             owned_roles[guild] = owned_role
         return owned_roles
 
