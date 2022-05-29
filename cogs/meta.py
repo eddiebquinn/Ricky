@@ -10,6 +10,7 @@ class Meta(commands.Cog):
     def __init__(self, client):
         LOGGER.warning(f"initilised {__class__.__cog_name__} cog")
         self.client = client
+        self.client.remove_command('help')
         self.status = cycle(["Hi, im ricky!"])
         self.activity_cycle.start()
 
@@ -28,6 +29,10 @@ class Meta(commands.Cog):
         bot_invite = utils.extract_json(
         )["discord_api_settings"]["invite_link"]
         await ctx.send(bot_invite)
+
+    @commands.command(name="help")
+    async def help(self, ctx):
+        await ctx.send("https://github.com/eddiebquinn/Ricky/wiki/Bot-commands")
 
 
 def setup(client):
