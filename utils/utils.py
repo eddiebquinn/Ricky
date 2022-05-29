@@ -28,7 +28,7 @@ class TimeConverter(commands.Converter):
             return False
 
         time = 0
-        message = f"You can only use seconds, minutes, hours, and days as time keys."
+        message = f"You can only use seconds, minutes, hours, and days as time keys. \n e.g. - `1d 4h 5m` for 1d 4 hours and 5m"
         for arg in args:
             part = re.split('(\d+)', arg)
             if part[0] != "":
