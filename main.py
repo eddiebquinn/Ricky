@@ -1,4 +1,5 @@
 import utils.logger as logger
+import logging
 import database
 import discord_conn
 
