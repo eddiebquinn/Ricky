@@ -40,7 +40,7 @@ class TimeConverter(commands.Converter):
                 return False
             unit = time_dict[part[1]]
             time += unit * int(part[0])
-        return (time, overide)
+        return (float(time), overide)
 
 
 async def is_in_streak_channel(ctx):
