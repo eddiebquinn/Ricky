@@ -16,7 +16,7 @@ class Streak(commands.Cog):
     @commands.command(name="relapse")
     @commands.check(utils.is_in_streak_channel)
     @commands.cooldown(3, 300, commands.BucketType.user)
-    async def relapse(self, ctx,  *, declared_streak_length: utils.TimeConverter = 0.0):
+    async def relapse(self, ctx,  *, declared_streak_length: utils.TimeConverter = (0.0, False)):
         """Updated the users roles and databse entry with most recent relaspe, and posts message
 
         Args:
