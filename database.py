@@ -33,7 +33,7 @@ class Database:
             'guild', self.meta,
             Column('guild_id', BIGINT, primary_key=True, nullable=False),
             Column('streak_channel_limit', TINYINT, nullable=False),
-            Column('strak_roles_channel', BIGINT),
+            Column('streak_roles_channel', BIGINT),
             Column('roles_enabled', TINYINT, nullable=False),
             Column('porn_filter_enabled', TINYINT, nullable=False)
         )
@@ -55,7 +55,7 @@ class Database:
             Column("discord_user_id", BIGINT, ForeignKey(
                 "user.discord_user_id"), nullable=False),
             Column("relapse_utc", DATETIME, nullable=False),
-            Column("previous_streak_invalid", INTEGER)
+            Column("invalid", INTEGER)
         )
 
         self.webConfigTab = Table(
@@ -86,7 +86,7 @@ class Database:
 
     # Guild Tab
 
-    async def select_guild_data(self, guild_id: int):
+    async def select_guild_data(self, guild_id: int = None):
         """Returns the data of the specified guild
 
         Args:
@@ -96,8 +96,12 @@ class Database:
             tuple: The data of the guild requested
         """
         await self.do_log("SELECT", "guild", {"guild_id": guild_id})
-        query = self.guildTab.select().where(self.guildTab.c.guild_id == guild_id)
-        return self.conn.execute(query).fetchone()
+        if guild_id:
+            query = self.guildTab.select().where(self.guildTab.c.guild_id == guild_id)
+            return self.conn.execute(query).fetchone()
+        else:
+            query = self.guildTab.select()
+            return self.conn.execute(query).fetchall()
 
     async def insert_guild_data(self, guild_id: int):
         """Inserts data into the guild table
@@ -152,22 +156,22 @@ class Database:
                                                user_id).order_by(desc(self.relapseTab.c.relapse_utc))
         return self.conn.execute(query).fetchall()
 
-    async def insert_relapse(self, user_id: int, relapse_utc=datetime.utcnow(), previous_streak_invalid=False):
+    async def insert_relapse(self, user_id: int, relapse_utc=datetime.utcnow(), invalid=False):
         """Inserts relapse into relapse table
 
         Args:
             user_id (int): The discord user id
             relapse_utc (_type_, optional): The utc of the relaspe.
-            previous_streak_invalid (bool, optional): Weather the previous streak is valid.
+            invalid (bool, optional): Weather the previous streak is valid.
         """
         await self.do_log("INSERT", "relapse_data", {
             "user_id": user_id,
             "relapse_utc": relapse_utc,
-            "previous_streak_invalid": previous_streak_invalid})
+            "invalid": invalid})
         query = self.relapseTab.insert().values(
             discord_user_id=user_id,
             relapse_utc=relapse_utc,
-            previous_streak_invalid=previous_streak_invalid
+            invalid=invalid
         )
         self.conn.execute(query)
 
