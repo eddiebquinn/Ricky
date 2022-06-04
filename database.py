@@ -86,7 +86,7 @@ class Database:
 
     # Guild Tab
 
-    async def select_guild_data(self, guild_id: int):
+    async def select_guild_data(self, guild_id: int = None):
         """Returns the data of the specified guild
 
         Args:
@@ -96,8 +96,12 @@ class Database:
             tuple: The data of the guild requested
         """
         await self.do_log("SELECT", "guild", {"guild_id": guild_id})
-        query = self.guildTab.select().where(self.guildTab.c.guild_id == guild_id)
-        return self.conn.execute(query).fetchone()
+        if guild_id:
+            query = self.guildTab.select().where(self.guildTab.c.guild_id == guild_id)
+            return self.conn.execute(query).fetchone()
+        else:
+            query = self.guildTab.select()
+            return self.conn.execute(query).fetchall()
 
     async def insert_guild_data(self, guild_id: int):
         """Inserts data into the guild table
