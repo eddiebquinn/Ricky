@@ -125,6 +125,8 @@ class Streak(commands.Cog):
         used_guilds = []
         for guild in gross_guilds:
             guild_data = await database.DATABASE_CONN.select_guild_data(guild.id)
+            if guild_data is None:
+                continue
             for member in guild.members:
                 if author.id == member.id:
                     if guild_data[3] == 1:
