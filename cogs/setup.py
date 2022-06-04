@@ -119,7 +119,7 @@ class Setup(commands.Cog):
     @commands.cooldown(3, 300, commands.BucketType.user)
     async def setup_streak_channel(self, ctx):
         """Chnages the streak channel to the channel command is sent it"""
-        data = await database.DATABASE_CONN.update_guild_data(ctx.guild.id, {"strak_roles_channel": ctx.channel.id})
+        data = await database.DATABASE_CONN.update_guild_data(ctx.guild.id, {"streak_roles_channel": ctx.channel.id})
         if data:
             await ctx.send(f"Sucsessfully updated streak channel to {ctx.channel.name}")
 
