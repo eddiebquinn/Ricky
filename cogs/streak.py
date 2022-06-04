@@ -31,11 +31,11 @@ class Streak(commands.Cog):
         if previous:
             relapse_data = await database.DATABASE_CONN.select_relapse_data(ctx.author.id)
             most_recent_relapse = relapse_data[0][2]
-        if starting_date < most_recent_relapse:
-            await ctx.send("You can't set a streak that starts before you last relapse")
-            return
-        previous_streak_length = starting_date - most_recent_relapse
-        previous_streak_length = await self.get_streak_string(previous_streak_length.total_seconds())
+            if starting_date < most_recent_relapse:
+                await ctx.send("You can't set a streak that starts before you last relapse. An overide for this will eventually be added.")
+                return
+            previous_streak_length = starting_date - most_recent_relapse
+            previous_streak_length = await self.get_streak_string(previous_streak_length.total_seconds())
         await self.db_streak_update(
             ctx=ctx,
             previous=previous,
