@@ -1,3 +1,4 @@
+import discord
 from discord.ext import commands
 from utils.logger import LOGGER
 import traceback
@@ -19,6 +20,10 @@ class ErrorHandler(commands.Cog):
         error = getattr(error, 'original', error)
 
         if isinstance(error, commands.CommandNotFound):
+            return
+        if isinstance(error, commands.errors.CheckFailure):
+            return
+        if isinstance(error, discord.errors.Forbidden):
             return
         if isinstance(error, commands.CommandOnCooldown):
             time = int(error.retry_after) // 60
