@@ -24,6 +24,8 @@ class Streak(commands.Cog):
         """
         if declared_streak_length[0] is False:
             return
+        if declared_streak_length[1] is True:
+            await self.overide(user_id=ctx.author.id)
         starting_date = datetime.utcnow(
         ) - timedelta(seconds=int(declared_streak_length[0]))
         userdata = await database.DATABASE_CONN.seclect_user_data(ctx.author.id)
@@ -47,6 +49,18 @@ class Streak(commands.Cog):
             await ctx.send(f"Your previous streak was {previous_streak_length[0]} days, and {previous_streak_length[1]} hours. \n Dont be dejected")
         else:
             await ctx.send("This is your first sreak on record, good luck")
+
+    async def overide(self, user_id: int):
+        user_data = await database.DATABASE_CONN.seclect_user_data(user_id)
+        previous_overide = True if user_data[3] is not None else False
+        # Check fail conditions
+        if previous_overide:
+            time_diff_last_overide = datetime.now() - user_data[3]
+            if time_diff_last_overide < timedelta(days=14):
+                msg = "you can only overide once every two weeks"
+                return(False, msg)
+
+        print("cum")
 
     @commands.command(name="update")
     @commands.check(utils.is_in_streak_channel)
