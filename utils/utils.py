@@ -19,9 +19,12 @@ class TimeConverter(commands.Converter):
         """
         args = arguments.lower().split()
         overide = False
-        if "overide" in arguments:
+        if "--overide" in arguments or "-o" in arguments:
             overide = True
-            args.remove("overide")
+            try:
+                args.remove("--overide")
+            except ValueError:
+                args.remove("-o")
         time_dict = {"s": 1, "m": 60, "h": 3600, "d": 86400}
         if "M" in arguments:
             await ctx.send("please use 'm' istead of 'M'")
