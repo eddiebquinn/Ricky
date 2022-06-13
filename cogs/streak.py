@@ -26,19 +26,29 @@ class Streak(commands.Cog):
             return
         starting_date = datetime.utcnow(
         ) - timedelta(seconds=int(declared_streak_length[0]))
-        userdata = await database.DATABASE_CONN.seclect_user_data(ctx.author.id)
-        previous = True if userdata else False
+        relapse_data = await database.DATABASE_CONN.select_relapse_data(ctx.author.id)
+        previous = True if relapse_data else False
         if previous:
+            if declared_streak_length[1] is True:
+                returned_data = await self.overide(user_id=ctx.author.id, date=starting_date)
+                if returned_data[0] == False:
+                    await ctx.send(returned_data[1])
+                    return
             relapse_data = await database.DATABASE_CONN.select_relapse_data(ctx.author.id)
-            most_recent_relapse = relapse_data[0][2]
-            if starting_date < most_recent_relapse:
-                await ctx.send("You can't set a streak that starts before you last relapse. An overide for this will eventually be added.")
-                return
-            previous_streak_length = starting_date - most_recent_relapse
-            previous_streak_length = await self.get_streak_string(previous_streak_length.total_seconds())
+            if len(relapse_data) > 0:
+                most_recent_relapse = relapse_data[0][2]
+                if starting_date < most_recent_relapse:
+                    await ctx.send("You can't set a streak that starts before you last relapse. An overide for this will eventually be added.")
+                    return
+                previous_streak_length = starting_date - most_recent_relapse
+                previous_streak_length = await self.get_streak_string(previous_streak_length.total_seconds())
+            else:
+                previous = False
+        user_in_db = await database.DATABASE_CONN.seclect_user_data(ctx.author.id)
+        user_in_db = True if user_in_db else False
         await self.db_streak_update(
             ctx=ctx,
-            previous=previous,
+            previous=user_in_db,
             starting_date=starting_date)
         current_streak_length = datetime.utcnow() - starting_date
         current_streak_length = await self.get_streak_string(current_streak_length.total_seconds())
@@ -47,6 +57,22 @@ class Streak(commands.Cog):
             await ctx.send(f"Your previous streak was {previous_streak_length[0]} days, and {previous_streak_length[1]} hours. \n Dont be dejected")
         else:
             await ctx.send("This is your first sreak on record, good luck")
+
+    async def overide(self, user_id: int, date: datetime):
+        user_data = await database.DATABASE_CONN.seclect_user_data(user_id=user_id)
+        previous_overide = True if user_data[3] is not None else False
+        # Check fail conditions
+        if previous_overide:
+            time_diff_last_overide = datetime.now() - user_data[3]
+            if time_diff_last_overide < timedelta(days=14):
+                msg = "you can only overide once every two weeks"
+                return(False, msg)
+        previous_relapses = await database.DATABASE_CONN.select_relapse_data(user_id=user_id)
+        for row in previous_relapses:
+            if row[2] > date:
+                await database.DATABASE_CONN.update_relapase_data(relapse_id=row[0], user_id=user_data)
+        await database.DATABASE_CONN.update_user_data(user_id=user_id, column="last_overide")
+        return(True, None)
 
     @commands.command(name="update")
     @commands.check(utils.is_in_streak_channel)

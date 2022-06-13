@@ -1,6 +1,6 @@
 import utils.utils as utils
 import utils.logger as logger
-from sqlalchemy import create_engine, MetaData, Table, Column, ForeignKey, update, desc
+from sqlalchemy import create_engine, MetaData, Table, Column, ForeignKey, update, desc, and_
 from sqlalchemy.dialects.mysql import BIGINT, INTEGER, TEXT, DATETIME, TINYINT, VARCHAR
 from datetime import datetime
 
@@ -26,7 +26,8 @@ class Database:
             Column('discord_user_id', BIGINT,
                    primary_key=True, nullable=False),
             Column('last_update', DATETIME),
-            Column('developer', TINYINT, nullable=False, default=0)
+            Column('developer', TINYINT, nullable=False, default=0),
+            Column('last_overide', DATETIME)
         )
 
         self.guildTab = Table(
@@ -142,7 +143,7 @@ class Database:
 
     # Relapse Tab
 
-    async def select_relapse_data(self, user_id: int):
+    async def select_relapse_data(self, user_id: int, invalid: int = 0):
         """Returns a list of users previous relapses
 
         Args:
@@ -152,9 +153,16 @@ class Database:
             list: The previous relapses of that user
         """
         await self.do_log("SELECT", "relapse_data", {"user_id": user_id})
-        query = self.relapseTab.select().where(self.relapseTab.c.discord_user_id ==
-                                               user_id).order_by(desc(self.relapseTab.c.relapse_utc))
+        query = self.relapseTab.select().where(
+            and_(self.relapseTab.c.discord_user_id == user_id, self.relapseTab.c.invalid == invalid)).order_by(
+                desc(self.relapseTab.c.relapse_utc))
         return self.conn.execute(query).fetchall()
+
+    async def update_relapase_data(self, relapse_id, user_id):
+        await self.do_log("UPDATE", "relapse", {"user_id": user_id, "last_update": datetime.utcnow()})
+        query = update(self.relapseTab).where(self.relapseTab.c.relapse_id == relapse_id).values(
+            invalid=1)
+        self.conn.execute(query)
 
     async def insert_relapse(self, user_id: int, relapse_utc=datetime.utcnow(), invalid=False):
         """Inserts relapse into relapse table
@@ -201,15 +209,19 @@ class Database:
             last_update=datetime.utcnow())
         self.conn.execute(query)
 
-    async def update_user_data(self, user_id: int):
+    async def update_user_data(self, user_id: int, column: str = "last_update"):
         """Updates the data of a specfic user in the user table
 
         Args:
             user_id (int): The user whos data is to be updated
         """
         await self.do_log("UPDATE", "user", {"user_id": user_id, "last_update": datetime.utcnow()})
-        query = update(self.userTab).where(self.userTab.c.discord_user_id == user_id).values(
-            last_update=datetime.utcnow())
+        if column == "last_update":
+            query = update(self.userTab).where(self.userTab.c.discord_user_id == user_id).values(
+                last_update=datetime.utcnow())
+        elif column == "last_overide":
+            query = update(self.userTab).where(self.userTab.c.discord_user_id == user_id).values(
+                last_overide=datetime.utcnow())
         self.conn.execute(query)
 
     # Roleinfo Tab
