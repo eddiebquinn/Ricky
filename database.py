@@ -26,7 +26,8 @@ class Database:
             Column('discord_user_id', BIGINT,
                    primary_key=True, nullable=False),
             Column('last_update', DATETIME),
-            Column('developer', TINYINT, nullable=False, default=0)
+            Column('developer', TINYINT, nullable=False, default=0),
+            Column('last_overide', DATETIME)
         )
 
         self.guildTab = Table(
