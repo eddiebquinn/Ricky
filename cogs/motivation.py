@@ -6,7 +6,7 @@ from utils.logger import LOGGER
 class Motivation(commands.Cog):
 
     def __init__(self, client):
-        LOGGER.warning(f"initilised {__class__.__cog_name__} cog")
+        LOGGER.warning(f"initialised {__class__.__cog_name__} cog")
         self.client = client
         self.motivational_links = (
             "https://www.youtube.com/watch?v=xBvPPW5uYVQ",

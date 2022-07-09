@@ -9,7 +9,7 @@ from itertools import cycle
 class Meta(commands.Cog):
 
     def __init__(self, client):
-        LOGGER.warning(f"initilised {__class__.__cog_name__} cog")
+        LOGGER.warning(f"initialised {__class__.__cog_name__} cog")
         self.client = client
         self.client.remove_command('help')
         self.status = cycle(["Hi, im ricky!"])
@@ -18,7 +18,7 @@ class Meta(commands.Cog):
 
     @tasks.loop(hours=1)
     async def add_guilds(self):
-        """Automatically adds missing guilds to databse every hour"""
+        """Automatically adds missing guilds to database every hour"""
         LOGGER.info("Automated guild integrity check starting")
         guilds_member = self.client.guilds
         guilds_databse = [guild_row[0] for guild_row in await database.DATABASE_CONN.select_guild_data()]
@@ -28,7 +28,7 @@ class Meta(commands.Cog):
                 continue
             await database.DATABASE_CONN.insert_guild_data(guild.id)
             LOGGER.warning(
-                f"{guild.id} added to databse due to integrity check")
+                f"{guild.id} added to database due to integrity check")
 
     @tasks.loop(minutes=1)
     async def activity_cycle(self):
