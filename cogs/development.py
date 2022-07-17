@@ -5,7 +5,7 @@ from utils.logger import LOGGER
 
 class Development(commands.Cog):
     def __init__(self, client):
-        LOGGER.warning(f"initilised {__class__.__cog_name__} cog")
+        LOGGER.warning(f"initialised {__class__.__cog_name__} cog")
         self.client = client
 
     @commands.command(name="cog", aliases=["cogs"])

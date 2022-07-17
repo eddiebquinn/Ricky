@@ -7,7 +7,7 @@ from utils.logger import LOGGER
 
 class Setup(commands.Cog):
     def __init__(self, client):
-        LOGGER.warning(f"initilised {__class__.__cog_name__} cog")
+        LOGGER.warning(f"initialised {__class__.__cog_name__} cog")
         self.client = client
         self.user = self.client.user
         self.link = "https://github.com/eddiebquinn/Ricky/wiki/Guild-configuration-for-admins-moderators"
@@ -112,7 +112,7 @@ class Setup(commands.Cog):
 
         data = await database.DATABASE_CONN.update_guild_data(ctx.guild.id, {settings[raw_setting]: new_val})
         if data:
-            await ctx.send(f"Sucsessfully updated {raw_setting}")
+            await ctx.send(f"Successfully updated {raw_setting}")
 
     @commands.command(name="setup_streak_channel")
     @commands.has_guild_permissions(manage_guild=True)
@@ -121,7 +121,7 @@ class Setup(commands.Cog):
         """Chnages the streak channel to the channel command is sent it"""
         data = await database.DATABASE_CONN.update_guild_data(ctx.guild.id, {"streak_roles_channel": ctx.channel.id})
         if data:
-            await ctx.send(f"Sucsessfully updated streak channel to {ctx.channel.name}")
+            await ctx.send(f"Successfully updated streak channel to {ctx.channel.name}")
 
     @commands.command(name="Setup_roles")
     @commands.has_guild_permissions(manage_guild=True)
@@ -132,7 +132,7 @@ class Setup(commands.Cog):
         Args:
             args (str): You can choose either `overide` or `hoist`.
                 Overide deleted old roles and makes new ones
-                Hoist makes it so the roles are displayed seperatley to others
+                Hoist makes it so the roles are displayed separately to others
         """
         overide = False
         hoist = False
@@ -162,7 +162,7 @@ class Setup(commands.Cog):
             return
         response = await self.roles_into_database(guild=ctx.guild, roles=response)
         if response is True:
-            await ctx.send("Role creation succsessful")
+            await ctx.send("Role creation successful")
 
     async def do_overide(self, guild: discord.Guild, roles: list):
         """Deleted old roles and associated database entries
@@ -208,10 +208,10 @@ class Setup(commands.Cog):
 
         Args:
             guild (discord.Guild): The associated guild to the roles being added
-            roles (list): The roles whos data is subject to being inserted into the database
+            roles (list): The roles whose data is subject to being inserted into the database
 
         Returns:
-            Bool: Returns True if data is succsessfully inserted into databse
+            Bool: Returns True if data is successfully inserted into database
         """
         for role in roles:
             await database.DATABASE_CONN.insert_guild_roles(

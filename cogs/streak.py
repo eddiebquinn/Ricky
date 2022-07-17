@@ -10,17 +10,17 @@ from datetime import datetime, timedelta
 class Streak(commands.Cog):
 
     def __init__(self, client):
-        LOGGER.warning(f"initilised {__class__.__cog_name__} cog")
+        LOGGER.warning(f"initialised {__class__.__cog_name__} cog")
         self.client = client
 
     @commands.command(name="relapse")
     @commands.check(utils.is_in_streak_channel)
     @commands.cooldown(3, 300, commands.BucketType.user)
     async def relapse(self, ctx,  *, declared_streak_length: utils.TimeConverter = (0.0, False)):
-        """Updated the users roles and databse entry with most recent relaspe, and posts message
+        """Updated the users roles and database entry with most recent relapse, and posts message
 
         Args:
-            declared_streak_length (utils.TimeConverter, optional): A series of time keys and coefficents (1d 2m 3h). Defaults to 0.0.
+            declared_streak_length (utils.TimeConverter, optional): A series of time keys and coefficients (1d 2m 3h). Defaults to 0.0.
         """
         if declared_streak_length[0] is False:
             return
@@ -38,7 +38,8 @@ class Streak(commands.Cog):
             if len(relapse_data) > 0:
                 most_recent_relapse = relapse_data[0][2]
                 if starting_date < most_recent_relapse:
-                    await ctx.send("You can't set a streak that starts before you last relapse. An overide for this will eventually be added.")
+                    await ctx.send("You can't set a streak that starts before you last relapse. To override this "
+                                   "please include `-o` or `--overide` in the command e.g. `relapse 1d --overide`")
                     return
                 previous_streak_length = starting_date - most_recent_relapse
                 previous_streak_length = await self.get_streak_string(previous_streak_length.total_seconds())
@@ -56,7 +57,7 @@ class Streak(commands.Cog):
         if previous:
             await ctx.send(f"Your previous streak was {previous_streak_length[0]} days, and {previous_streak_length[1]} hours. \n Dont be dejected")
         else:
-            await ctx.send("This is your first sreak on record, good luck")
+            await ctx.send("This is your first streak on record, good luck")
 
     async def overide(self, user_id: int, date: datetime):
         user_data = await database.DATABASE_CONN.seclect_user_data(user_id=user_id)
@@ -65,7 +66,7 @@ class Streak(commands.Cog):
         if previous_overide:
             time_diff_last_overide = datetime.now() - user_data[3]
             if time_diff_last_overide < timedelta(days=14):
-                msg = "you can only overide once every two weeks"
+                msg = "you can only override once every two weeks"
                 return(False, msg)
         previous_relapses = await database.DATABASE_CONN.select_relapse_data(user_id=user_id)
         for row in previous_relapses:
@@ -82,7 +83,8 @@ class Streak(commands.Cog):
         userdata = await database.DATABASE_CONN.seclect_user_data(ctx.author.id)
         previous = True if userdata else False
         if not previous:
-            await ctx.send("You dont appear to have any previous streaks on record. Please do `!relapse` to start your first one!")
+            await ctx.send("You dont appear to have any previous streaks on record. Please do `!relapse` to start "
+                           "your first one!")
             return
         previous_streak_data = await database.DATABASE_CONN.select_relapse_data(ctx.author.id)
         most_recent_relapse = previous_streak_data[0][2]
@@ -112,7 +114,7 @@ class Streak(commands.Cog):
             seconds (int): The seconds to be converted
 
         Returns:
-            list: A list comprised of [days, hours] where items are intergers
+            list: A list comprised of [days, hours] where items are integers
         """
         days = seconds // 86400
         hours = (seconds % 86400) // 3600
@@ -185,7 +187,7 @@ class Streak(commands.Cog):
         return owned_roles
 
     async def get_deserved_roles(self, used_guilds: list, current_streak_length):
-        """Gets the desrved roles of the member in each guild based on current streak length
+        """Gets the deserved roles of the member in each guild based on current streak length
 
         Args:
             used_guilds (list): The guilds which both the user and bot are in, which have roles turned on
